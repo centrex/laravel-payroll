@@ -2,11 +2,11 @@
 
 ## Package Overview
 
-`laravel-package-skeleton` — Template/scaffold for creating new Laravel packages in this monorepo.
+`laravel-package-laravel-payroll` — Template/scaffold for creating new Laravel packages in this monorepo.
 
-Namespace: `VendorName\Skeleton\` (replace with actual vendor/package name)
+Namespace: `Centrex\Payroll\` (replace with actual vendor/package name)
 
-This is the reference template. When creating a new package, copy this directory and do a find-and-replace on `VendorName`, `Skeleton`, `skeleton`, and `package-description`.
+This is the reference template. When creating a new package, copy this directory and do a find-and-replace on `Centrex`, `Payroll`, `laravel-payroll`, and `package-description`.
 
 ## Commands
 
@@ -48,9 +48,9 @@ workbench/                      # Testbench dev app
 
 ## Checklist when creating a new package
 
-1. Replace all `VendorName\Skeleton` namespace references
+1. Replace all `Centrex\Payroll` namespace references
 2. Update `composer.json` name, description, and autoload namespace
-3. Rename `Skeleton.php` and `SkeletonServiceProvider.php`
+3. Rename `Payroll.php` and `PayrollServiceProvider.php`
 4. Update `config/config.php` key to match package slug
 5. Register service provider in `TestCase.php`
 

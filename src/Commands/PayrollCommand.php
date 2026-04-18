@@ -2,13 +2,13 @@
 
 declare(strict_types = 1);
 
-namespace VendorName\Skeleton\Commands;
+namespace Centrex\Payroll\Commands;
 
 use Illuminate\Console\Command;
 
-class SkeletonCommand extends Command
+class PayrollCommand extends Command
 {
-    public $signature = 'skeleton';
+    public $signature = 'laravel-payroll';
 
     public $description = 'My command';
 
