@@ -19,8 +19,8 @@ class PayrollServiceProvider extends ServiceProvider
          * Optional methods to load your package assets
          */
         // $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'laravel-payroll');
-        $this->loadViewsFrom(__DIR__.'/../resources/views', 'laravel-payroll');
-        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
+        $this->loadViewsFrom(__DIR__ . '/../resources/views', 'laravel-payroll');
+        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
         // $this->loadRoutesFrom(__DIR__.'/routes.php');
 
         $this->registerViteDirective();
@@ -42,7 +42,7 @@ class PayrollServiceProvider extends ServiceProvider
 
             // Publishing the migrations.
             $this->publishes([
-                __DIR__.'/../database/migrations/' => database_path('migrations')
+                __DIR__ . '/../database/migrations/' => database_path('migrations'),
             ], 'laravel-payroll-migrations');
 
             // Publishing the views.
@@ -63,10 +63,9 @@ class PayrollServiceProvider extends ServiceProvider
             // Registering package commands.
             // $this->commands([]);
         }
-
     }
 
-        private function registerViteDirective(): void
+    private function registerViteDirective(): void
     {
         Blade::directive('payrollVite', fn (): string => sprintf(
             '<?php echo \\Centrex\\TallUi\\Support\\PackageVite::render(%s, %s, %s); ?>',
