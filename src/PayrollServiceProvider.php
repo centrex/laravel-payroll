@@ -4,7 +4,9 @@ declare(strict_types = 1);
 
 namespace Centrex\Payroll;
 
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
+use Livewire\Livewire;
 
 class PayrollServiceProvider extends ServiceProvider
 {
@@ -17,9 +19,21 @@ class PayrollServiceProvider extends ServiceProvider
          * Optional methods to load your package assets
          */
         // $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'laravel-payroll');
-        // $this->loadViewsFrom(__DIR__.'/../resources/views', 'laravel-payroll');
-        // $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
+        $this->loadViewsFrom(__DIR__.'/../resources/views', 'laravel-payroll');
+        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
         // $this->loadRoutesFrom(__DIR__.'/routes.php');
+
+        $this->registerViteDirective();
+
+        if ((bool) config('payroll.web_enabled', true)) {
+            $this->loadRoutesFrom(__DIR__ . '/../routes/web.php');
+        }
+
+        if ((bool) config('payroll.api_enabled', true)) {
+            $this->loadRoutesFrom(__DIR__ . '/../routes/api.php');
+        }
+
+        $this->registerLivewireComponents();
 
         if ($this->app->runningInConsole()) {
             $this->publishes([
@@ -27,9 +41,9 @@ class PayrollServiceProvider extends ServiceProvider
             ], 'laravel-payroll-config');
 
             // Publishing the migrations.
-            /*$this->publishes([
+            $this->publishes([
                 __DIR__.'/../database/migrations/' => database_path('migrations')
-            ], 'laravel-payroll-migrations');*/
+            ], 'laravel-payroll-migrations');
 
             // Publishing the views.
             /*$this->publishes([
@@ -49,6 +63,17 @@ class PayrollServiceProvider extends ServiceProvider
             // Registering package commands.
             // $this->commands([]);
         }
+
+    }
+
+        private function registerViteDirective(): void
+    {
+        Blade::directive('payrollVite', fn (): string => sprintf(
+            '<?php echo \\Centrex\\TallUi\\Support\\PackageVite::render(%s, %s, %s); ?>',
+            var_export(dirname(__DIR__), true),
+            var_export('payroll.hot', true),
+            var_export(['resources/js/app.js'], true),
+        ));
     }
 
     /**
@@ -63,5 +88,16 @@ class PayrollServiceProvider extends ServiceProvider
         $this->app->singleton('laravel-payroll', function () {
             return new Payroll();
         });
+    }
+
+    private function registerLivewireComponents(): void
+    {
+        if (!class_exists(Livewire::class)) {
+            return;
+        }
+
+        Livewire::component('payroll-entries', Http\Livewire\PayrollEntriesPage::class);
+        Livewire::component('payroll-entity-index', Http\Livewire\Entities\EntityIndexPage::class);
+        Livewire::component('payroll-entity-form', Http\Livewire\Entities\EntityFormPage::class);
     }
 }
