@@ -4,9 +4,9 @@ declare(strict_types = 1);
 
 namespace Centrex\Payroll\Tests;
 
+use Centrex\Payroll\PayrollServiceProvider;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Orchestra\Testbench\TestCase as Orchestra;
-use Centrex\Payroll\PayrollServiceProvider;
 
 class TestCase extends Orchestra
 {
