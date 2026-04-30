@@ -4,7 +4,7 @@ declare(strict_types = 1);
 
 namespace Centrex\Payroll\Http\Controllers\Api;
 
-use Centrex\Payroll\Enums\{LoanStatus, LoanType, RepaymentMethod};
+use Centrex\Payroll\Enums\{LoanType, RepaymentMethod};
 use Centrex\Payroll\Exceptions\{InvalidLoanTransitionException, LoanRepaymentExceedsBalanceException};
 use Centrex\Payroll\Facades\Payroll;
 use Centrex\Payroll\Models\{Employee, EmployeeLoan};
@@ -88,8 +88,8 @@ class EmployeeLoanController extends Controller
         }
 
         return response()->json([
-            'data'    => $repayment,
-            'loan'    => $employeeLoan->fresh()->load(['employee', 'repayments']),
+            'data' => $repayment,
+            'loan' => $employeeLoan->fresh()->load(['employee', 'repayments']),
         ], 201);
     }
 

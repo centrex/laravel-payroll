@@ -15,37 +15,54 @@ class EmployeeLoansPage extends Component
 {
     use WithPagination;
 
-    public string $search         = '';
-    public string $statusFilter   = '';
-    public string $typeFilter     = '';
-    public ?int $employeeFilter   = null;
+    public string $search = '';
+
+    public string $statusFilter = '';
+
+    public string $typeFilter = '';
+
+    public ?int $employeeFilter = null;
 
     // Issue loan form
-    public bool $showIssueModal   = false;
-    public int $employee_id       = 0;
-    public string $type           = 'loan';
-    public float $amount          = 0;
+    public bool $showIssueModal = false;
+
+    public int $employee_id = 0;
+
+    public string $type = 'loan';
+
+    public float $amount = 0;
+
     public string $repayment_method = 'salary_deduction';
-    public int $installments      = 0;
+
+    public int $installments = 0;
+
     public float $installment_amount = 0;
-    public string $issue_date     = '';
+
+    public string $issue_date = '';
+
     public string $expected_completion_date = '';
-    public string $notes          = '';
+
+    public string $notes = '';
 
     // Repayment modal
-    public bool $showRepayModal   = false;
-    public ?int $repayLoanId      = null;
-    public float $repayAmount     = 0;
-    public string $repayMethod    = 'salary_deduction';
-    public string $repayDate      = '';
-    public string $repayNotes     = '';
+    public bool $showRepayModal = false;
 
-    protected array $queryString  = ['search', 'statusFilter', 'typeFilter'];
+    public ?int $repayLoanId = null;
+
+    public float $repayAmount = 0;
+
+    public string $repayMethod = 'salary_deduction';
+
+    public string $repayDate = '';
+
+    public string $repayNotes = '';
+
+    protected array $queryString = ['search', 'statusFilter', 'typeFilter'];
 
     public function mount(): void
     {
         $this->issue_date = now()->format('Y-m-d');
-        $this->repayDate  = now()->format('Y-m-d');
+        $this->repayDate = now()->format('Y-m-d');
     }
 
     public function openIssue(): void
@@ -54,7 +71,7 @@ class EmployeeLoansPage extends Component
             'employee_id', 'type', 'amount', 'repayment_method',
             'installments', 'installment_amount', 'expected_completion_date', 'notes',
         ]);
-        $this->type       = 'loan';
+        $this->type = 'loan';
         $this->repayment_method = 'salary_deduction';
         $this->issue_date = now()->format('Y-m-d');
         $this->showIssueModal = true;
@@ -63,15 +80,15 @@ class EmployeeLoansPage extends Component
     public function issueLoan(): void
     {
         $this->validate([
-            'employee_id'               => 'required|integer|min:1',
-            'type'                      => 'required|in:loan,advance',
-            'amount'                    => 'required|numeric|min:0.01',
-            'repayment_method'          => 'required|in:salary_deduction,cash,bank_transfer',
-            'installments'              => 'nullable|integer|min:1',
-            'installment_amount'        => 'nullable|numeric|min:0',
-            'issue_date'                => 'required|date',
-            'expected_completion_date'  => 'nullable|date|after_or_equal:issue_date',
-            'notes'                     => 'nullable|string|max:1000',
+            'employee_id'              => 'required|integer|min:1',
+            'type'                     => 'required|in:loan,advance',
+            'amount'                   => 'required|numeric|min:0.01',
+            'repayment_method'         => 'required|in:salary_deduction,cash,bank_transfer',
+            'installments'             => 'nullable|integer|min:1',
+            'installment_amount'       => 'nullable|numeric|min:0',
+            'issue_date'               => 'required|date',
+            'expected_completion_date' => 'nullable|date|after_or_equal:issue_date',
+            'notes'                    => 'nullable|string|max:1000',
         ]);
 
         Payroll::issueLoan($this->employee_id, [
@@ -115,23 +132,23 @@ class EmployeeLoansPage extends Component
 
     public function openRepay(int $id): void
     {
-        $loan              = EmployeeLoan::findOrFail($id);
+        $loan = EmployeeLoan::findOrFail($id);
         $this->repayLoanId = $id;
         $this->repayAmount = (float) $loan->installment_amount ?: (float) $loan->outstanding_balance;
         $this->repayMethod = $loan->repayment_method->value;
-        $this->repayDate   = now()->format('Y-m-d');
-        $this->repayNotes  = '';
+        $this->repayDate = now()->format('Y-m-d');
+        $this->repayNotes = '';
         $this->showRepayModal = true;
     }
 
     public function recordRepayment(): void
     {
         $this->validate([
-            'repayLoanId'  => 'required|integer',
-            'repayAmount'  => 'required|numeric|min:0.01',
-            'repayMethod'  => 'required|in:salary_deduction,cash,bank_transfer',
-            'repayDate'    => 'required|date',
-            'repayNotes'   => 'nullable|string|max:500',
+            'repayLoanId' => 'required|integer',
+            'repayAmount' => 'required|numeric|min:0.01',
+            'repayMethod' => 'required|in:salary_deduction,cash,bank_transfer',
+            'repayDate'   => 'required|date',
+            'repayNotes'  => 'nullable|string|max:500',
         ]);
 
         $loan = EmployeeLoan::findOrFail($this->repayLoanId);
@@ -175,11 +192,11 @@ class EmployeeLoansPage extends Component
             : 'components.layouts.app';
 
         return view('payroll::livewire.employee-loans', [
-            'loans'           => $loans,
-            'employees'       => $employees,
-            'loanTypes'       => LoanType::cases(),
-            'loanStatuses'    => LoanStatus::cases(),
-            'repaymentMethods'=> RepaymentMethod::cases(),
+            'loans'            => $loans,
+            'employees'        => $employees,
+            'loanTypes'        => LoanType::cases(),
+            'loanStatuses'     => LoanStatus::cases(),
+            'repaymentMethods' => RepaymentMethod::cases(),
         ])->layout($layout, ['title' => __('Employee Loans & Advances')]);
     }
 }

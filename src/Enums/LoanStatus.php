@@ -6,8 +6,8 @@ namespace Centrex\Payroll\Enums;
 
 enum LoanStatus: string
 {
-    case Pending   = 'pending';
-    case Active    = 'active';
+    case Pending = 'pending';
+    case Active = 'active';
     case Completed = 'completed';
     case Cancelled = 'cancelled';
 

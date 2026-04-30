@@ -35,17 +35,17 @@ class EmployeeLoan extends Model
     ];
 
     protected $casts = [
-        'type'             => LoanType::class,
-        'status'           => LoanStatus::class,
-        'repayment_method' => RepaymentMethod::class,
-        'amount'           => 'decimal:2',
-        'disbursed_amount' => 'decimal:2',
-        'outstanding_balance' => 'decimal:2',
-        'installment_amount'  => 'decimal:2',
-        'installments'     => 'integer',
-        'issue_date'       => 'date',
+        'type'                     => LoanType::class,
+        'status'                   => LoanStatus::class,
+        'repayment_method'         => RepaymentMethod::class,
+        'amount'                   => 'decimal:2',
+        'disbursed_amount'         => 'decimal:2',
+        'outstanding_balance'      => 'decimal:2',
+        'installment_amount'       => 'decimal:2',
+        'installments'             => 'integer',
+        'issue_date'               => 'date',
         'expected_completion_date' => 'date',
-        'approved_at'      => 'datetime',
+        'approved_at'              => 'datetime',
     ];
 
     #[\Override]
@@ -60,7 +60,7 @@ class EmployeeLoan extends Model
 
             DB::connection($loan->getConnectionName())->transaction(function () use ($loan): void {
                 $prefix = $loan->type === LoanType::Advance ? 'ADV' : 'LOAN';
-                $date   = now()->format('Ymd');
+                $date = now()->format('Ymd');
 
                 $last = self::query()
                     ->whereDate('created_at', now()->toDateString())

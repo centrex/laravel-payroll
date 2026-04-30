@@ -15,7 +15,6 @@ class Payroll
     /**
      * Issue a new loan or salary advance to an employee.
      *
-     * @param  int|Employee  $employee
      * @param  array{
      *     type: string,
      *     amount: float,
@@ -33,11 +32,11 @@ class Payroll
         $employee = $employee instanceof Employee ? $employee : Employee::findOrFail($employee);
 
         $loanType = LoanType::from($data['type']);
-        $amount   = (float) $data['amount'];
+        $amount = (float) $data['amount'];
 
         return DB::transaction(function () use ($employee, $data, $loanType, $amount): EmployeeLoan {
             $installmentAmount = (float) ($data['installment_amount'] ?? 0);
-            $installments      = isset($data['installments']) ? (int) $data['installments'] : null;
+            $installments = isset($data['installments']) ? (int) $data['installments'] : null;
 
             if ($installmentAmount <= 0 && $installments !== null && $installments > 0) {
                 $installmentAmount = round($amount / $installments, 2);
@@ -114,13 +113,13 @@ class Payroll
 
         return DB::transaction(function () use ($loan, $data, $amount): EmployeeLoanRepayment {
             $repayment = EmployeeLoanRepayment::create([
-                'employee_loan_id'  => $loan->id,
-                'payroll_entry_id'  => $data['payroll_entry_id'] ?? null,
-                'amount'            => $amount,
-                'method'            => $data['method'] ?? $loan->repayment_method->value,
-                'repaid_at'         => $data['repaid_at'] ?? now()->toDateString(),
-                'notes'             => $data['notes'] ?? null,
-                'created_by'        => $data['created_by'] ?? null,
+                'employee_loan_id' => $loan->id,
+                'payroll_entry_id' => $data['payroll_entry_id'] ?? null,
+                'amount'           => $amount,
+                'method'           => $data['method'] ?? $loan->repayment_method->value,
+                'repaid_at'        => $data['repaid_at'] ?? now()->toDateString(),
+                'notes'            => $data['notes'] ?? null,
+                'created_by'       => $data['created_by'] ?? null,
             ]);
 
             $newBalance = max(0.0, (float) $loan->outstanding_balance - $amount);
@@ -187,15 +186,15 @@ class Payroll
             ->get();
 
         return [
-            'total_issued'       => (float) $loans->sum('amount'),
-            'total_disbursed'    => (float) $loans->sum('disbursed_amount'),
-            'outstanding_balance'=> (float) $loans->where('status', LoanStatus::Active->value)->sum('outstanding_balance'),
-            'total_repaid'       => (float) EmployeeLoanRepayment::query()
+            'total_issued'        => (float) $loans->sum('amount'),
+            'total_disbursed'     => (float) $loans->sum('disbursed_amount'),
+            'outstanding_balance' => (float) $loans->where('status', LoanStatus::Active->value)->sum('outstanding_balance'),
+            'total_repaid'        => (float) EmployeeLoanRepayment::query()
                 ->whereIn('employee_loan_id', $loans->pluck('id'))
                 ->sum('amount'),
-            'active_loans'       => $loans->where('status', LoanStatus::Active->value)->count(),
-            'pending_loans'      => $loans->where('status', LoanStatus::Pending->value)->count(),
-            'completed_loans'    => $loans->where('status', LoanStatus::Completed->value)->count(),
+            'active_loans'    => $loans->where('status', LoanStatus::Active->value)->count(),
+            'pending_loans'   => $loans->where('status', LoanStatus::Pending->value)->count(),
+            'completed_loans' => $loans->where('status', LoanStatus::Completed->value)->count(),
         ];
     }
 }

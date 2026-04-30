@@ -6,7 +6,7 @@ namespace Centrex\Payroll\Enums;
 
 enum LoanType: string
 {
-    case Loan    = 'loan';
+    case Loan = 'loan';
     case Advance = 'advance';
 
     public function label(): string

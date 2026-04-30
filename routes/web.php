@@ -2,8 +2,8 @@
 
 declare(strict_types = 1);
 
-use Centrex\Payroll\Http\Livewire\Entities\{EntityFormPage, EntityIndexPage};
 use Centrex\Payroll\Http\Livewire\{EmployeeLoansPage, PayrollEntriesPage};
+use Centrex\Payroll\Http\Livewire\Entities\{EntityFormPage, EntityIndexPage};
 use Centrex\Payroll\Support\PayrollEntityRegistry;
 use Illuminate\Support\Facades\Route;
 

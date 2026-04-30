@@ -7,8 +7,8 @@ namespace Centrex\Payroll\Enums;
 enum RepaymentMethod: string
 {
     case SalaryDeduction = 'salary_deduction';
-    case Cash            = 'cash';
-    case BankTransfer    = 'bank_transfer';
+    case Cash = 'cash';
+    case BankTransfer = 'bank_transfer';
 
     public function label(): string
     {
