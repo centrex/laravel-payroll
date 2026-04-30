@@ -46,4 +46,19 @@ class Employee extends Model
     {
         return $this->hasMany(PayrollEntryLine::class);
     }
+
+    public function loans(): HasMany
+    {
+        return $this->hasMany(EmployeeLoan::class);
+    }
+
+    public function activeLoans(): HasMany
+    {
+        return $this->hasMany(EmployeeLoan::class)->where('status', 'active');
+    }
+
+    public function getTotalOutstandingLoanAttribute(): float
+    {
+        return (float) $this->loans()->where('status', 'active')->sum('outstanding_balance');
+    }
 }

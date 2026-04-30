@@ -3,7 +3,7 @@
 declare(strict_types = 1);
 
 use Centrex\Payroll\Http\Livewire\Entities\{EntityFormPage, EntityIndexPage};
-use Centrex\Payroll\Http\Livewire\PayrollEntriesPage;
+use Centrex\Payroll\Http\Livewire\{EmployeeLoansPage, PayrollEntriesPage};
 use Centrex\Payroll\Support\PayrollEntityRegistry;
 use Illuminate\Support\Facades\Route;
 
@@ -12,6 +12,7 @@ Route::middleware(config('payroll.web_middleware', ['web', 'auth']))
     ->as('payroll.')
     ->group(function (): void {
         Route::get('/', PayrollEntriesPage::class)->name('entries.index');
+        Route::get('/loans', EmployeeLoansPage::class)->name('loans.index');
 
         foreach (PayrollEntityRegistry::masterDataEntities() as $entity) {
             Route::get("/{$entity}", EntityIndexPage::class)->name("entities.{$entity}.index")->defaults('entity', $entity);

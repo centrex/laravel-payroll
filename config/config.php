@@ -21,6 +21,7 @@ return [
     'per_page' => [
         'entries'   => 15,
         'employees' => 25,
+        'loans'     => 15,
     ],
 
 ];

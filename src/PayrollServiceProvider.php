@@ -84,9 +84,8 @@ class PayrollServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__ . '/../config/config.php', 'laravel-payroll');
 
         // Register the main class to use with the facade
-        $this->app->singleton('laravel-payroll', function () {
-            return new Payroll();
-        });
+        $this->app->singleton(Payroll::class, fn () => new Payroll());
+        $this->app->alias(Payroll::class, 'laravel-payroll');
     }
 
     private function registerLivewireComponents(): void
@@ -96,6 +95,7 @@ class PayrollServiceProvider extends ServiceProvider
         }
 
         Livewire::component('payroll-entries', Http\Livewire\PayrollEntriesPage::class);
+        Livewire::component('payroll-employee-loans', Http\Livewire\EmployeeLoansPage::class);
         Livewire::component('payroll-entity-index', Http\Livewire\Entities\EntityIndexPage::class);
         Livewire::component('payroll-entity-form', Http\Livewire\Entities\EntityFormPage::class);
     }
