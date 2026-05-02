@@ -36,7 +36,7 @@ class Payroll
 
         return DB::transaction(function () use ($employee, $data, $loanType, $amount): EmployeeLoan {
             $installmentAmount = (float) ($data['installment_amount'] ?? 0);
-            $installments = isset($data['installments']) ? (int) $data['installments'] : null;
+            $installments = $data['installments'] ?? null;
 
             if ($installmentAmount <= 0 && $installments !== null && $installments > 0) {
                 $installmentAmount = round($amount / $installments, 2);

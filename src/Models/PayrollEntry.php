@@ -14,6 +14,7 @@ class PayrollEntry extends Model
     use AddTablePrefix;
     use SoftDeletes;
 
+    #[\Override]
     protected function getTableSuffix(): string
     {
         return 'payroll_entries';

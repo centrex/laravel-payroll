@@ -13,7 +13,7 @@ class PayrollServiceProvider extends ServiceProvider
     /**
      * Bootstrap the application services.
      */
-    public function boot()
+    public function boot(): void
     {
         /*
          * Optional methods to load your package assets
@@ -78,13 +78,14 @@ class PayrollServiceProvider extends ServiceProvider
     /**
      * Register the application services.
      */
-    public function register()
+    #[\Override]
+    public function register(): void
     {
         // Automatically apply the package configuration
         $this->mergeConfigFrom(__DIR__ . '/../config/config.php', 'laravel-payroll');
 
         // Register the main class to use with the facade
-        $this->app->singleton(Payroll::class, fn () => new Payroll());
+        $this->app->singleton(Payroll::class, fn (): \Centrex\Payroll\Payroll => new Payroll());
         $this->app->alias(Payroll::class, 'laravel-payroll');
     }
 

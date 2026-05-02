@@ -15,6 +15,7 @@ class EmployeeLoan extends Model
     use AddTablePrefix;
     use SoftDeletes;
 
+    #[\Override]
     protected function getTableSuffix(): string
     {
         return 'employee_loans';

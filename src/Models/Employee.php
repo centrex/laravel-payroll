@@ -13,6 +13,7 @@ class Employee extends Model
     use AddTablePrefix;
     use SoftDeletes;
 
+    #[\Override]
     protected function getTableSuffix(): string
     {
         return 'employees';

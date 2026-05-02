@@ -9,12 +9,13 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class PayrollEntryLineResource extends JsonResource
 {
+    #[\Override]
     public function toArray(Request $request): array
     {
         return [
             'id'          => $this->id,
             'employee_id' => $this->employee_id,
-            'employee'    => $this->whenLoaded('employee', fn () => [
+            'employee'    => $this->whenLoaded('employee', fn (): array => [
                 'id'          => $this->employee?->id,
                 'code'        => $this->employee?->code,
                 'name'        => $this->employee?->name,
@@ -22,7 +23,7 @@ class PayrollEntryLineResource extends JsonResource
                 'designation' => $this->employee?->designation,
             ]),
             'payroll_account_id' => $this->payroll_account_id,
-            'payroll_account'    => $this->whenLoaded('payrollAccount', fn () => [
+            'payroll_account'    => $this->whenLoaded('payrollAccount', fn (): array => [
                 'id'   => $this->payrollAccount?->id,
                 'code' => $this->payrollAccount?->code,
                 'name' => $this->payrollAccount?->name,

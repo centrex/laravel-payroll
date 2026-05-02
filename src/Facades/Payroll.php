@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Facade;
  */
 class Payroll extends Facade
 {
+    #[\Override]
     protected static function getFacadeAccessor()
     {
         return \Centrex\Payroll\Payroll::class;

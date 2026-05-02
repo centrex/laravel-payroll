@@ -100,7 +100,7 @@ class PayrollEntityRegistry
         foreach ($definition['form_fields'] as $field) {
             $fieldRules = $field['rules'];
 
-            if (in_array($field['name'], ['code'], true)) {
+            if ($field['name'] === 'code') {
                 $fieldRules[] = Rule::unique($table, $field['name'])->ignore($record?->getKey());
             }
 
@@ -158,15 +158,17 @@ class PayrollEntityRegistry
         $options = [];
 
         foreach ($definition['form_fields'] as $field) {
-            if (($field['type'] ?? null) !== 'select' || empty($field['related_model'])) {
+            if (($field['type'] ?? null) !== 'select') {
                 continue;
             }
-
+            if (empty($field['related_model'])) {
+                continue;
+            }
             $related = new $field['related_model']();
             $options[$field['name']] = $related->newQuery()
                 ->orderBy($field['related_label'])
                 ->get(['id', $field['related_label']])
-                ->map(fn (Model $model) => [
+                ->map(fn (Model $model): array => [
                     'value' => (string) $model->getKey(),
                     'label' => (string) $model->getAttribute($field['related_label']),
                 ])

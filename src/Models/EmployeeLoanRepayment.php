@@ -13,6 +13,7 @@ class EmployeeLoanRepayment extends Model
 {
     use AddTablePrefix;
 
+    #[\Override]
     protected function getTableSuffix(): string
     {
         return 'employee_loan_repayments';

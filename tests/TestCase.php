@@ -10,15 +10,17 @@ use Orchestra\Testbench\TestCase as Orchestra;
 
 class TestCase extends Orchestra
 {
+    #[\Override]
     protected function setUp(): void
     {
         parent::setUp();
 
         Factory::guessFactoryNamesUsing(
-            fn (string $modelName) => 'Centrex\\Payroll\\Database\\Factories\\' . class_basename($modelName) . 'Factory',
+            fn (string $modelName): string => 'Centrex\\Payroll\\Database\\Factories\\' . class_basename($modelName) . 'Factory',
         );
     }
 
+    #[\Override]
     protected function getPackageProviders($app)
     {
         return [
@@ -26,7 +28,8 @@ class TestCase extends Orchestra
         ];
     }
 
-    public function getEnvironmentSetUp($app)
+    #[\Override]
+    public function getEnvironmentSetUp($app): void
     {
         config()->set('database.default', 'testing');
 

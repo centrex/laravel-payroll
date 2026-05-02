@@ -12,6 +12,7 @@ class PayrollEntryLine extends Model
 {
     use AddTablePrefix;
 
+    #[\Override]
     protected function getTableSuffix(): string
     {
         return 'payroll_entry_lines';
