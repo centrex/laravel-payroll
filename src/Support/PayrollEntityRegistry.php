@@ -161,6 +161,7 @@ class PayrollEntityRegistry
             if (($field['type'] ?? null) !== 'select') {
                 continue;
             }
+
             if (empty($field['related_model'])) {
                 continue;
             }

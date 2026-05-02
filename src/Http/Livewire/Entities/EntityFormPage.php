@@ -42,7 +42,7 @@ class EntityFormPage extends Component
         $payload = PayrollEntityRegistry::fillablePayload($this->entity, $this->form);
         $validated = validator($payload, PayrollEntityRegistry::validationRules($this->entity, $record, $payload))->validate();
 
-        if ($record instanceof \Illuminate\Database\Eloquent\Model) {
+        if ($record instanceof Model) {
             $record->fill($validated)->save();
         } else {
             $model = PayrollEntityRegistry::makeModel($this->entity);
