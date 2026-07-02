@@ -131,7 +131,10 @@
 {{-- Issue Loan Modal --}}
 <x-tallui-modal id="issue-loan-modal" title="Issue Loan / Advance" icon="o-banknotes" size="lg">
     <x-slot:trigger>
-        <span x-effect="if ($wire.showIssueModal) $dispatch('open-modal', 'issue-loan-modal'); else $dispatch('close-modal', 'issue-loan-modal')"></span>
+        <span
+            x-effect="if ($wire.showIssueModal) $dispatch('open-modal', 'issue-loan-modal'); else $dispatch('close-modal', 'issue-loan-modal')"
+            @modal-closed.window="if ($event.detail === 'issue-loan-modal') $wire.showIssueModal = false"
+        ></span>
     </x-slot:trigger>
 
     <form wire:submit.prevent="issueLoan" class="space-y-4">
@@ -198,7 +201,10 @@
 {{-- Repayment Modal --}}
 <x-tallui-modal id="repay-modal" title="Record Repayment" icon="o-currency-dollar" size="md">
     <x-slot:trigger>
-        <span x-effect="if ($wire.showRepayModal) $dispatch('open-modal', 'repay-modal'); else $dispatch('close-modal', 'repay-modal')"></span>
+        <span
+            x-effect="if ($wire.showRepayModal) $dispatch('open-modal', 'repay-modal'); else $dispatch('close-modal', 'repay-modal')"
+            @modal-closed.window="if ($event.detail === 'repay-modal') $wire.showRepayModal = false"
+        ></span>
     </x-slot:trigger>
 
     <form wire:submit.prevent="recordRepayment" class="space-y-4">

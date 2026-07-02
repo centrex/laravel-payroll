@@ -94,7 +94,10 @@
 
 <x-tallui-modal id="payroll-modal" title="New Payroll Entry" icon="o-users" size="xl">
     <x-slot:trigger>
-        <span x-effect="if ($wire.showModal) $dispatch('open-modal', 'payroll-modal'); else $dispatch('close-modal', 'payroll-modal')"></span>
+        <span
+            x-effect="if ($wire.showModal) $dispatch('open-modal', 'payroll-modal'); else $dispatch('close-modal', 'payroll-modal')"
+            @modal-closed.window="if ($event.detail === 'payroll-modal') $wire.showModal = false"
+        ></span>
     </x-slot:trigger>
 
     <form wire:submit.prevent="save" class="space-y-4">
