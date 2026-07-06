@@ -24,4 +24,30 @@ return [
         'loans'     => 15,
     ],
 
+    'admin_roles'          => explode(',', env('PAYROLL_ADMIN_ROLES', 'admin,payroll-admin')),
+    'admin_role_attribute' => null,
+
+    // Posts a journal entry to laravel-accounting when a payroll entry is approved. Off by
+    // default so payroll works fully standalone until accounting integration is installed
+    // and this is turned on. Each PayrollAccount must be mapped to a real GL account
+    // (accounting_account_id) and tagged as 'earning' (debit) or 'deduction' (credit).
+    'accounting_sync' => [
+        'enabled' => env('PAYROLL_ACCOUNTING_SYNC_ENABLED', false),
+    ],
+
+    'accounts' => [
+        'salaries_payable' => env('PAYROLL_ACCOUNT_SALARIES_PAYABLE', '2250'),
+    ],
+
+    // Salary structures: percentage_of_basic lines resolve against whichever Payroll
+    // Account has this code. Tax certificates report on whichever Payroll Account has
+    // the tax_deduction code below (no separate tax calculation — it just reads that line).
+    'salary_structure' => [
+        'basic_account_code' => env('PAYROLL_BASIC_ACCOUNT_CODE', 'BASIC'),
+    ],
+
+    'tax' => [
+        'deduction_account_code' => env('PAYROLL_TAX_ACCOUNT_CODE', 'TAX'),
+    ],
+
 ];

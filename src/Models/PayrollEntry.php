@@ -30,6 +30,7 @@ class PayrollEntry extends Model
         'entry_number', 'date', 'reference', 'description',
         'currency', 'type', 'exchange_rate',
         'created_by', 'approved_by', 'approved_at', 'status',
+        'journal_entry_id',
     ];
 
     protected $casts = [

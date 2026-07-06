@@ -27,6 +27,7 @@ class PayrollAccount extends Model
 
     protected $fillable = [
         'code', 'name', 'description', 'currency', 'is_active', 'particulars',
+        'accounting_account_id', 'component_type',
     ];
 
     protected $casts = [

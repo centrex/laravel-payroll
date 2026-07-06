@@ -33,14 +33,16 @@ class Employee extends Model
         'emergency_contact_name', 'emergency_contact_phone',
         'tax_id', 'currency', 'credit_limit', 'payment_terms', 'is_active',
         'modelable_type', 'modelable_id',
+        'user_id', 'commission_rate',
     ];
 
     protected $casts = [
-        'joining_date'   => 'date',
-        'monthly_salary' => 'decimal:2',
-        'credit_limit'   => 'decimal:2',
-        'payment_terms'  => 'integer',
-        'is_active'      => 'boolean',
+        'joining_date'    => 'date',
+        'monthly_salary'  => 'decimal:2',
+        'credit_limit'    => 'decimal:2',
+        'payment_terms'   => 'integer',
+        'is_active'       => 'boolean',
+        'commission_rate' => 'decimal:4',
     ];
 
     public function payrollLines(): HasMany

@@ -1,6 +1,13 @@
 <div>
 <x-tallui-notification />
 
+@php
+    $payrollAbilityModule = match ($entity) {
+        'payroll-accounts' => 'heads',
+        default => $entity,
+    };
+@endphp
+
 <x-tallui-page-header
     :title="$definition['label']"
     :subtitle="'Browse and manage ' . strtolower($definition['label']) . '.'"
@@ -20,12 +27,14 @@
                 class="input-sm"
             />
         </div>
-        <x-tallui-button
-            :label="'New ' . $definition['singular']"
-            icon="o-plus"
-            :link="route('payroll.entities.' . $entity . '.create')"
-            class="btn-primary btn-sm"
-        />
+        @can('payroll.' . $payrollAbilityModule . '.manage')
+            <x-tallui-button
+                :label="'New ' . $definition['singular']"
+                icon="o-plus"
+                :link="route('payroll.entities.' . $entity . '.create')"
+                class="btn-primary btn-sm"
+            />
+        @endcan
     </x-slot:actions>
 </x-tallui-page-header>
 
@@ -63,13 +72,15 @@
                         @endforeach
                         <td class="pr-5">
                             <div class="flex justify-end gap-1">
-                                <x-tallui-button
-                                    icon="o-pencil-square"
-                                    :link="route('payroll.entities.' . $entity . '.edit', ['recordId' => $record->getKey()])"
-                                    class="btn-ghost btn-xs"
-                                    :responsive="true"
-                                    label="Edit"
-                                />
+                                @can('payroll.' . $payrollAbilityModule . '.manage')
+                                    <x-tallui-button
+                                        icon="o-pencil-square"
+                                        :link="route('payroll.entities.' . $entity . '.edit', ['recordId' => $record->getKey()])"
+                                        class="btn-ghost btn-xs"
+                                        :responsive="true"
+                                        label="Edit"
+                                    />
+                                @endcan
                                 <x-tallui-button
                                     icon="o-trash"
                                     class="btn-ghost btn-xs text-error"
@@ -91,12 +102,14 @@
                                 icon="o-folder-open"
                                 size="sm"
                             >
-                                <x-tallui-button
-                                    :label="'New ' . $definition['singular']"
-                                    icon="o-plus"
-                                    :link="route('payroll.entities.' . $entity . '.create')"
-                                    class="btn-primary btn-sm"
-                                />
+                                @can('payroll.' . $payrollAbilityModule . '.manage')
+                                    <x-tallui-button
+                                        :label="'New ' . $definition['singular']"
+                                        icon="o-plus"
+                                        :link="route('payroll.entities.' . $entity . '.create')"
+                                        class="btn-primary btn-sm"
+                                    />
+                                @endcan
                             </x-tallui-empty-state>
                         </td>
                     </tr>

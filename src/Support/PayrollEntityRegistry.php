@@ -41,6 +41,8 @@ class PayrollEntityRegistry
                     self::field('currency', 'text', ['required', 'string', 'size:3'], 'BDT'),
                     self::field('credit_limit', 'number', ['nullable', 'numeric', 'min:0'], 0),
                     self::field('payment_terms', 'number', ['nullable', 'integer', 'min:0'], 30),
+                    self::field('user_id', 'number', ['nullable', 'integer'], null, null, null, null, 'User ID (for sales commission)'),
+                    self::field('commission_rate', 'number', ['nullable', 'numeric', 'min:0', 'max:100'], null, null, null, null, 'Commission Rate (%)'),
                     self::field('is_active', 'checkbox', ['boolean'], true),
                 ],
             ],
@@ -49,15 +51,22 @@ class PayrollEntityRegistry
                 'singular'      => 'Payroll Account',
                 'model'         => PayrollAccount::class,
                 'search'        => ['code', 'name', 'description'],
-                'index_columns' => ['code', 'name', 'currency', 'is_active'],
-                'form_fields'   => [
+                'index_columns' => ['code', 'name', 'component_type', 'currency', 'is_active'],
+                'form_fields'   => array_values(array_filter([
                     self::field('code', 'text', ['required', 'string', 'max:30']),
                     self::field('name', 'text', ['required', 'string', 'max:200']),
                     self::field('description', 'textarea', ['nullable', 'string']),
+                    self::field('component_type', 'select', ['required', Rule::in(['earning', 'deduction'])], 'earning', null, null, [
+                        ['value' => 'earning', 'label' => 'Earning (debit)'],
+                        ['value' => 'deduction', 'label' => 'Deduction (credit)'],
+                    ]),
+                    class_exists(\Centrex\Accounting\Models\Account::class)
+                        ? self::field('accounting_account_id', 'select', ['nullable', 'integer'], null, \Centrex\Accounting\Models\Account::class, 'name')
+                        : null,
                     self::field('currency', 'text', ['required', 'string', 'size:3'], 'BDT'),
                     self::field('particulars', 'textarea', ['nullable', 'string']),
                     self::field('is_active', 'checkbox', ['boolean'], true),
-                ],
+                ])),
             ],
         ];
     }
@@ -162,6 +171,12 @@ class PayrollEntityRegistry
                 continue;
             }
 
+            if (!empty($field['options'])) {
+                $options[$field['name']] = $field['options'];
+
+                continue;
+            }
+
             if (empty($field['related_model'])) {
                 continue;
             }
@@ -196,15 +211,18 @@ class PayrollEntityRegistry
         mixed $default = null,
         ?string $relatedModel = null,
         ?string $relatedLabel = null,
+        ?array $options = null,
+        ?string $label = null,
     ): array {
         return [
             'name'          => $name,
-            'label'         => Str::of($name)->replace('_', ' ')->title()->toString(),
+            'label'         => $label ?: Str::of($name)->replace('_', ' ')->title()->toString(),
             'type'          => $type,
             'rules'         => $rules,
             'default'       => $default,
             'related_model' => $relatedModel,
             'related_label' => $relatedLabel,
+            'options'       => $options,
         ];
     }
 }

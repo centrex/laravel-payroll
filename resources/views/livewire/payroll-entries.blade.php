@@ -3,8 +3,12 @@
 
 <x-tallui-page-header title="Payroll" subtitle="Track payroll runs and salary head allocations" icon="o-users">
     <x-slot:actions>
-        <x-tallui-button :link="route('payroll.entities.employees.index')" icon="o-identification" class="btn-outline btn-sm">Employees</x-tallui-button>
-        <x-tallui-button :link="route('payroll.entities.payroll-accounts.index')" icon="o-banknotes" class="btn-outline btn-sm">Payroll Heads</x-tallui-button>
+        @can('payroll.employees.view')
+            <x-tallui-button :link="route('payroll.entities.employees.index')" icon="o-identification" class="btn-outline btn-sm">Employees</x-tallui-button>
+        @endcan
+        @can('payroll.heads.view')
+            <x-tallui-button :link="route('payroll.entities.payroll-accounts.index')" icon="o-banknotes" class="btn-outline btn-sm">Payroll Heads</x-tallui-button>
+        @endcan
         <x-tallui-button wire:click="openCreate" icon="o-plus" class="btn-primary btn-sm">New Payroll Entry</x-tallui-button>
     </x-slot:actions>
 </x-tallui-page-header>
@@ -122,6 +126,46 @@
         <x-tallui-form-group label="Description">
             <x-tallui-textarea wire:model="description" rows="2" placeholder="Optional notes for the run..." />
         </x-tallui-form-group>
+
+        <div class="flex items-end gap-2 bg-base-50 border border-base-200 p-2 rounded-xl">
+            <div class="flex-1">
+                <x-tallui-form-group label="Auto-fill from Salary Structure">
+                    <x-tallui-select wire:model="structureEmployeeId">
+                        <option value="">Select employee…</option>
+                        @foreach($employees as $employee)
+                            <option value="{{ $employee->id }}">{{ $employee->code }} - {{ $employee->name }}</option>
+                        @endforeach
+                    </x-tallui-select>
+                </x-tallui-form-group>
+            </div>
+            <x-tallui-button wire:click="addFromStructure" icon="o-bolt" class="btn-outline btn-sm">Add Lines</x-tallui-button>
+        </div>
+
+        <div class="grid grid-cols-[1.2fr_1.2fr_1fr_1fr_auto] gap-2 items-end bg-base-50 border border-base-200 p-2 rounded-xl">
+            <x-tallui-form-group label="Sales Commission — Employee" :error="$errors->first('commissionEmployeeId')">
+                <x-tallui-select wire:model="commissionEmployeeId">
+                    <option value="">Select employee…</option>
+                    @foreach($employees as $employee)
+                        <option value="{{ $employee->id }}">{{ $employee->code }} - {{ $employee->name }}</option>
+                    @endforeach
+                </x-tallui-select>
+            </x-tallui-form-group>
+            <x-tallui-form-group label="Commission Payroll Account" :error="$errors->first('commissionAccountId')">
+                <x-tallui-select wire:model="commissionAccountId">
+                    <option value="">Select account…</option>
+                    @foreach($accounts as $account)
+                        <option value="{{ $account->id }}">{{ $account->code }} - {{ $account->name }}</option>
+                    @endforeach
+                </x-tallui-select>
+            </x-tallui-form-group>
+            <x-tallui-form-group label="From" :error="$errors->first('commissionFrom')">
+                <x-tallui-input type="date" wire:model="commissionFrom" />
+            </x-tallui-form-group>
+            <x-tallui-form-group label="To" :error="$errors->first('commissionTo')">
+                <x-tallui-input type="date" wire:model="commissionTo" />
+            </x-tallui-form-group>
+            <x-tallui-button wire:click="addCommissionLine" icon="o-chart-bar" class="btn-outline btn-sm">Add Commission</x-tallui-button>
+        </div>
 
         <div>
             <div class="flex items-center justify-between mb-2">

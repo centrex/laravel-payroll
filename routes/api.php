@@ -2,7 +2,7 @@
 
 declare(strict_types = 1);
 
-use Centrex\Payroll\Http\Controllers\Api\{EmployeeLoanController, EntityCrudController, PayrollEntryController};
+use Centrex\Payroll\Http\Controllers\Api\{EmployeeLoanController, EntityCrudController, PayrollEntryController, SalaryPaymentController};
 use Centrex\Payroll\Support\PayrollEntityRegistry;
 use Illuminate\Support\Facades\Route;
 
@@ -23,6 +23,10 @@ Route::middleware(config('payroll.api_middleware', ['api', 'auth:sanctum']))
         Route::get('/payroll-entries/{payrollEntry}', [PayrollEntryController::class, 'show'])->name('payroll-entries.show');
         Route::post('/payroll-entries/{payrollEntry}/approve', [PayrollEntryController::class, 'approve'])->name('payroll-entries.approve');
         Route::delete('/payroll-entries/{payrollEntry}', [PayrollEntryController::class, 'destroy'])->name('payroll-entries.destroy');
+
+        // Salary payments (disbursements) & employee salary ledger
+        Route::post('/payroll-entries/{payrollEntry}/pay', [SalaryPaymentController::class, 'store'])->name('salary-payments.store');
+        Route::get('/salary-ledger', [SalaryPaymentController::class, 'ledger'])->name('salary-ledger');
 
         // Employee loans & advances
         Route::get('/loans', [EmployeeLoanController::class, 'index'])->name('loans.index');

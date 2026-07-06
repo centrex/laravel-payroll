@@ -3,7 +3,9 @@
 
 <x-tallui-page-header title="Employee Loans & Advances" subtitle="Manage employee loans, salary advances, and repayments" icon="o-banknotes">
     <x-slot:actions>
-        <x-tallui-button :link="route('payroll.entries.index')" icon="o-document-text" class="btn-outline btn-sm">Payroll Entries</x-tallui-button>
+        @can('payroll.entries.view')
+            <x-tallui-button :link="route('payroll.entries.index')" icon="o-document-text" class="btn-outline btn-sm">Payroll Entries</x-tallui-button>
+        @endcan
         <x-tallui-button wire:click="openIssue" icon="o-plus" class="btn-primary btn-sm">Issue Loan / Advance</x-tallui-button>
     </x-slot:actions>
 </x-tallui-page-header>
