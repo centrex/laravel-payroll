@@ -60,11 +60,11 @@ class EmployeeSalaryLedgerPage extends Component
     public function recordPayment(): void
     {
         $this->validate([
-            'payAmount'   => 'required|numeric|min:0.01',
-            'payMethod'   => 'required|in:cash,bank_transfer,mobile_banking,cheque',
-            'payDate'     => 'required|date',
+            'payAmount'    => 'required|numeric|min:0.01',
+            'payMethod'    => 'required|in:cash,bank_transfer,mobile_banking,cheque',
+            'payDate'      => 'required|date',
             'payReference' => 'nullable|string|max:200',
-            'payNotes'    => 'nullable|string|max:1000',
+            'payNotes'     => 'nullable|string|max:1000',
         ]);
 
         $entry = PayrollEntry::findOrFail($this->payEntryId);
