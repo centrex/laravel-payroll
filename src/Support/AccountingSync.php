@@ -16,6 +16,12 @@ use Centrex\Payroll\Models\PayrollEntry;
  * of them aren't mapped, posting throws rather than silently posting a partial (and
  * therefore misleading) entry. The net (earnings − deductions) is credited to the
  * salaries-payable control account, so a fully-mapped entry always balances by construction.
+ *
+ * sbu_code (business unit / company tag, same convention as laravel-accounting's own
+ * documents) is derived from the entry's employees, not chosen by the caller: a PayrollEntry
+ * is expected to represent one company's payroll run. If its employees carry more than one
+ * distinct sbu_code, posting throws rather than silently commingling two companies' salary
+ * expense into one journal entry — split the run into one PayrollEntry per company instead.
  */
 class AccountingSync
 {
@@ -32,7 +38,9 @@ class AccountingSync
             return null;
         }
 
-        $lines = $entry->lines()->with('payrollAccount')->get()->groupBy('payroll_account_id');
+        $allLines = $entry->lines()->with(['payrollAccount', 'employee'])->get();
+        $sbuCode = $this->resolveSbuCode($entry, $allLines);
+        $lines = $allLines->groupBy('payroll_account_id');
 
         $journalLines = [];
         $unmapped = [];
@@ -108,6 +116,7 @@ class AccountingSync
             'description'   => $entry->description ?: ('Payroll — ' . $entry->entry_number),
             'currency'      => $entry->currency,
             'exchange_rate' => $entry->exchange_rate,
+            'sbu_code'      => $sbuCode,
             'lines'         => $journalLines,
         ]);
 
@@ -116,5 +125,26 @@ class AccountingSync
         $entry->update(['journal_entry_id' => $journalEntry->id]);
 
         return (int) $journalEntry->id;
+    }
+
+    /**
+     * @param  \Illuminate\Database\Eloquent\Collection<int, \Centrex\Payroll\Models\PayrollEntryLine>  $lines
+     */
+    private function resolveSbuCode(PayrollEntry $entry, \Illuminate\Database\Eloquent\Collection $lines): ?string
+    {
+        $codes = $lines
+            ->map(fn ($line) => $line->employee?->sbu_code)
+            ->filter(fn (?string $code): bool => $code !== null && $code !== '')
+            ->unique();
+
+        if ($codes->count() > 1) {
+            throw new \RuntimeException(
+                'Could not post payroll entry ' . $entry->entry_number . ' to accounting: '
+                . 'its employees span multiple companies (' . $codes->implode(', ') . '). '
+                . 'Split this run into one payroll entry per company (sbu_code) instead.',
+            );
+        }
+
+        return $codes->first();
     }
 }

@@ -27,7 +27,7 @@ class Employee extends Model
 
     protected $fillable = [
         'code', 'name', 'email', 'phone', 'address',
-        'city', 'country', 'department', 'designation',
+        'city', 'country', 'department', 'sbu_code', 'designation',
         'employment_type', 'joining_date', 'monthly_salary',
         'bank_account_name', 'bank_account_number',
         'emergency_contact_name', 'emergency_contact_phone',
