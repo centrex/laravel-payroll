@@ -77,6 +77,7 @@
                         </td>
                         <td class="pr-5">
                             <div class="flex justify-end gap-1">
+                                <x-tallui-button :link="route('payroll.entries.show', ['payrollEntryId' => $entry->id])" icon="o-eye" class="btn-ghost btn-xs">View</x-tallui-button>
                                 @if($entry->status === 'draft')
                                     <x-tallui-button wire:click="approve({{ $entry->id }})" class="btn-success btn-xs">Approve</x-tallui-button>
                                 @endif

@@ -4,7 +4,7 @@ declare(strict_types = 1);
 
 namespace Centrex\Payroll\Support;
 
-use Centrex\Payroll\Models\PayrollEntry;
+use Centrex\Payroll\Models\{PayrollEntry, SalaryPayment};
 
 /**
  * Posts an approved PayrollEntry as a single journal entry in laravel-accounting, mirroring
@@ -123,6 +123,69 @@ class AccountingSync
         $journalEntry->post();
 
         $entry->update(['journal_entry_id' => $journalEntry->id]);
+
+        return (int) $journalEntry->id;
+    }
+
+    /**
+     * Posts a salary disbursement as its own balanced journal entry, debiting the
+     * salaries-payable control account (the same one credited on approval — see
+     * postPayrollEntry above) and crediting the cash/bank account the money actually left
+     * from. One journal entry per SalaryPayment, since payments are often partial.
+     *
+     * $accountCode lets the caller pick the disbursement account (e.g. a specific bank
+     * account vs cash) the same way laravel-accounting's recordInvoicePayment/
+     * recordBillPayment do; it defaults to config('payroll.accounts.default_cash').
+     */
+    public function postSalaryPayment(SalaryPayment $payment, ?string $accountCode = null): ?int
+    {
+        if (!$this->enabled() || $payment->journal_entry_id) {
+            return null;
+        }
+
+        $payment->loadMissing(['payrollEntry', 'employee']);
+        $entry = $payment->payrollEntry;
+
+        $payableCode = (string) config('payroll.accounts.salaries_payable');
+        $payableAccount = \Centrex\Accounting\Models\Account::where('code', $payableCode)
+            ->where('is_active', true)
+            ->first();
+
+        if (!$payableAccount) {
+            throw new \RuntimeException("Payroll salaries-payable account (code {$payableCode}) not found or inactive.");
+        }
+
+        $cashCode = $accountCode ?: (string) config('payroll.accounts.default_cash', '1000');
+        $cashAccount = \Centrex\Accounting\Models\Account::where('code', $cashCode)
+            ->where('is_active', true)
+            ->first();
+
+        if (!$cashAccount) {
+            throw new \RuntimeException("Payroll disbursement account (code {$cashCode}) not found or inactive.");
+        }
+
+        $amount = round((float) $payment->amount, 2);
+
+        $accounting = app(\Centrex\Accounting\Accounting::class);
+
+        $journalEntry = $accounting->createJournalEntry([
+            'date'        => $payment->paid_at,
+            'reference'   => $entry->entry_number . '-PMT-' . $payment->id,
+            'type'        => 'general',
+            'description' => 'Salary payment — ' . $entry->entry_number
+                . ' (' . ($payment->employee?->name ?? ('employee #' . $payment->employee_id)) . ')',
+            'currency'      => $entry->currency,
+            'exchange_rate' => $entry->exchange_rate,
+            'sbu_code'      => $payment->employee?->sbu_code,
+            'lines'         => [
+                ['account_id' => $payableAccount->id, 'type' => 'debit', 'amount' => $amount, 'description' => 'Salaries payable settled'],
+                ['account_id' => $cashAccount->id, 'type' => 'credit', 'amount' => $amount, 'description' => 'Salary disbursed — ' . ($payment->method ?? 'bank_transfer')],
+            ],
+        ]);
+
+        $journalEntry->post();
+
+        $payment->update(['journal_entry_id' => $journalEntry->id]);
 
         return (int) $journalEntry->id;
     }

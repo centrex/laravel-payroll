@@ -37,6 +37,9 @@ return [
 
     'accounts' => [
         'salaries_payable' => env('PAYROLL_ACCOUNT_SALARIES_PAYABLE', '2250'),
+        // Credited when a salary payment is posted and no 'account_code' is given explicitly
+        // (same convention as laravel-accounting's recordInvoicePayment/recordBillPayment).
+        'default_cash' => env('PAYROLL_ACCOUNT_DEFAULT_CASH', '1000'),
     ],
 
     // Salary structures: percentage_of_basic lines resolve against whichever Payroll

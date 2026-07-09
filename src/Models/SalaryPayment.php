@@ -26,6 +26,7 @@ class SalaryPayment extends Model
 
     protected $fillable = [
         'payroll_entry_id', 'employee_id', 'amount', 'method', 'paid_at', 'reference', 'notes', 'created_by',
+        'journal_entry_id',
     ];
 
     protected $casts = [

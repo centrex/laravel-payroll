@@ -74,6 +74,11 @@ class PayrollEntry extends Model
         return $this->hasMany(PayrollEntryLine::class);
     }
 
+    public function payments(): HasMany
+    {
+        return $this->hasMany(SalaryPayment::class);
+    }
+
     public function getTotalAmountAttribute(): float
     {
         return (float) $this->lines()->sum('amount');

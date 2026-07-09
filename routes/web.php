@@ -3,7 +3,7 @@
 declare(strict_types = 1);
 
 use Centrex\Payroll\Http\Controllers\PayrollDocumentController;
-use Centrex\Payroll\Http\Livewire\{EmployeeLoansPage, EmployeeSalaryLedgerPage, EmployeeSalaryStructurePage, PayrollDashboard, PayrollEntriesPage};
+use Centrex\Payroll\Http\Livewire\{EmployeeLoansPage, EmployeeSalaryLedgerPage, EmployeeSalaryStructurePage, PayrollDashboard, PayrollEntriesPage, PayrollEntryShowPage};
 use Centrex\Payroll\Http\Livewire\Entities\{EntityFormPage, EntityIndexPage};
 use Centrex\Payroll\Support\PayrollEntityRegistry;
 use Illuminate\Support\Facades\Route;
@@ -13,6 +13,7 @@ Route::middleware(config('payroll.web_middleware', ['web', 'auth']))
     ->as('payroll.')
     ->group(function (): void {
         Route::get('/', PayrollEntriesPage::class)->name('entries.index');
+        Route::get('/entries/{payrollEntryId}', PayrollEntryShowPage::class)->name('entries.show');
         Route::get('/dashboard', PayrollDashboard::class)->name('dashboard');
         Route::get('/loans', EmployeeLoansPage::class)->name('loans.index');
         Route::get('/salary-ledger', EmployeeSalaryLedgerPage::class)->name('salary-ledger.index');
