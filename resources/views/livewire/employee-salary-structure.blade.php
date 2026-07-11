@@ -35,7 +35,7 @@
         <div class="overflow-x-auto">
             <table class="table table-sm w-full">
                 <thead>
-                    <tr class="bg-base-50 text-xs text-base-content/50 uppercase">
+                    <tr class="bg-base-300 text-xs text-base-content/60 uppercase tracking-wide border-b border-base-300">
                         <th class="pl-5">Payroll Account</th>
                         <th>Type</th>
                         <th class="text-right">Amount / %</th>
@@ -46,7 +46,7 @@
                 </thead>
                 <tbody class="divide-y divide-base-200">
                     @forelse ($structure as $line)
-                        <tr class="hover:bg-base-50">
+                        <tr class="even:bg-base-200/50 hover:bg-base-200">
                             <td class="pl-5 text-sm font-medium">{{ $line->payrollAccount->name }} <span class="text-xs text-base-content/50">({{ $line->payrollAccount->code }})</span></td>
                             <td class="text-sm text-base-content/70">
                                 {{ $line->calculation_type === 'percentage_of_basic' ? '% of Basic' : 'Fixed' }}
@@ -77,7 +77,7 @@
                 </tbody>
                 @if ($structure->isNotEmpty())
                     <tfoot>
-                        <tr class="bg-base-50 font-semibold">
+                        <tr class="bg-base-200/50 font-semibold">
                             <td class="pl-5" colspan="3">Total (net of deductions)</td>
                             <td class="text-right font-mono">{{ number_format($totalAmount, 2) }}</td>
                             <td colspan="2"></td>

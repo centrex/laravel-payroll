@@ -46,7 +46,7 @@
     <div class="overflow-x-auto">
         <table class="table table-sm w-full">
             <thead>
-                <tr class="bg-base-50 text-xs text-base-content/50 uppercase">
+                <tr class="bg-base-300 text-xs text-base-content/60 uppercase tracking-wide border-b border-base-300">
                     <th class="pl-5">Loan #</th>
                     <th>Employee</th>
                     <th>Type</th>
@@ -60,7 +60,7 @@
             </thead>
             <tbody class="divide-y divide-base-200">
                 @forelse($loans as $loan)
-                    <tr class="hover:bg-base-50">
+                    <tr class="even:bg-base-200/50 hover:bg-base-200">
                         <td class="pl-5 font-mono text-sm text-primary font-semibold">{{ $loan->loan_number }}</td>
                         <td>
                             <div class="text-sm font-medium">{{ $loan->employee->name }}</div>
@@ -101,7 +101,7 @@
                         </td>
                     </tr>
                     @if($loan->repayments->count() > 0)
-                        <tr class="bg-base-50">
+                        <tr class="bg-base-200/30">
                             <td colspan="9" class="px-10 pb-2 pt-0">
                                 <div class="text-xs text-base-content/50 uppercase font-semibold mb-1">Repayment History ({{ $loan->repayments->count() }})</div>
                                 <div class="flex flex-wrap gap-2">

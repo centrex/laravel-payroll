@@ -52,7 +52,7 @@
     <div class="overflow-x-auto">
         <table class="table table-sm w-full">
             <thead>
-                <tr class="bg-base-50 text-xs text-base-content/50 uppercase">
+                <tr class="bg-base-300 text-xs text-base-content/60 uppercase tracking-wide border-b border-base-300">
                     <th class="pl-5">Employee</th>
                     <th class="text-right">Earnings</th>
                     <th class="text-right">Deductions</th>
@@ -64,7 +64,7 @@
             </thead>
             <tbody class="divide-y divide-base-200">
                 @forelse ($employeeRows as $row)
-                    <tr class="hover:bg-base-50 align-top">
+                    <tr class="even:bg-base-200/50 hover:bg-base-200 align-top">
                         <td class="pl-5">
                             <div class="font-medium text-sm">{{ $row['employee']?->name ?? '—' }}</div>
                             <div class="text-xs text-base-content/50">{{ $row['employee']?->code }}</div>
@@ -113,7 +113,7 @@
     <div class="overflow-x-auto">
         <table class="table table-sm w-full">
             <thead>
-                <tr class="bg-base-50 text-xs text-base-content/50 uppercase">
+                <tr class="bg-base-300 text-xs text-base-content/60 uppercase tracking-wide border-b border-base-300">
                     <th class="pl-5">Date</th>
                     <th>Employee</th>
                     <th>Method</th>
@@ -124,7 +124,7 @@
             </thead>
             <tbody class="divide-y divide-base-200">
                 @forelse ($entry->payments as $payment)
-                    <tr class="hover:bg-base-50">
+                    <tr class="even:bg-base-200/50 hover:bg-base-200">
                         <td class="pl-5 text-sm text-base-content/70">{{ $payment->paid_at?->format('M d, Y') }}</td>
                         <td class="text-sm">{{ $payment->employee?->name ?? '—' }}</td>
                         <td class="text-sm text-base-content/60">{{ ucfirst(str_replace('_', ' ', $payment->method ?? '')) }}</td>

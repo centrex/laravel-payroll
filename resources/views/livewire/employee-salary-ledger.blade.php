@@ -71,7 +71,7 @@
         <div class="overflow-x-auto">
             <table class="table table-sm w-full">
                 <thead>
-                    <tr class="bg-base-50 text-xs text-base-content/50 uppercase">
+                    <tr class="bg-base-300 text-xs text-base-content/60 uppercase tracking-wide border-b border-base-300">
                         <th class="pl-5">Entry #</th>
                         <th>Date</th>
                         <th class="text-right">Earnings</th>
@@ -84,7 +84,7 @@
                 </thead>
                 <tbody class="divide-y divide-base-200">
                     @forelse ($ledger['entries'] as $row)
-                        <tr class="hover:bg-base-50">
+                        <tr class="even:bg-base-200/50 hover:bg-base-200">
                             <td class="pl-5 font-mono text-sm text-primary font-semibold">{{ $row['entry_number'] }}</td>
                             <td class="text-sm text-base-content/70">{{ \Illuminate\Support\Carbon::parse($row['date'])->format('M d, Y') }}</td>
                             <td class="text-right font-mono text-sm">{{ number_format($row['earnings'], 2) }}</td>
