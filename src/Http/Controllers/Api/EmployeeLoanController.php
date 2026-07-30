@@ -32,7 +32,7 @@ class EmployeeLoanController extends Controller
     public function store(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'employee_id'              => ['required', 'integer', 'exists:' . (new Employee())->getTable() . ',id'],
+            'employee_id'              => ['required', 'integer', 'exists:' . (new Employee)->getTable() . ',id'],
             'type'                     => ['required', Rule::enum(LoanType::class)],
             'amount'                   => ['required', 'numeric', 'min:0.01'],
             'repayment_method'         => ['nullable', Rule::enum(RepaymentMethod::class)],
@@ -107,7 +107,7 @@ class EmployeeLoanController extends Controller
     public function summary(Request $request): JsonResponse
     {
         $request->validate([
-            'employee_id' => ['required', 'integer', 'exists:' . (new Employee())->getTable() . ',id'],
+            'employee_id' => ['required', 'integer', 'exists:' . (new Employee)->getTable() . ',id'],
         ]);
 
         $summary = Payroll::getLoanSummary($request->integer('employee_id'));

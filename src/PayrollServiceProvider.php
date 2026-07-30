@@ -133,7 +133,7 @@ class PayrollServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__ . '/../config/config.php', 'payroll');
 
         // Register the main class to use with the facade
-        $this->app->singleton(Payroll::class, fn (): Payroll => new Payroll());
+        $this->app->singleton(Payroll::class, fn (): Payroll => new Payroll);
         $this->app->alias(Payroll::class, 'laravel-payroll');
     }
 

@@ -16,7 +16,7 @@ class SalaryPaymentController extends Controller
     public function store(Request $request, PayrollEntry $payrollEntry): JsonResponse
     {
         $data = $request->validate([
-            'employee_id'  => ['required', 'integer', 'exists:' . (new Employee())->getTable() . ',id'],
+            'employee_id'  => ['required', 'integer', 'exists:' . (new Employee)->getTable() . ',id'],
             'amount'       => ['required', 'numeric', 'min:0.01'],
             'method'       => ['nullable', 'string', 'in:cash,bank_transfer,mobile_banking,cheque'],
             'paid_at'      => ['nullable', 'date'],
@@ -44,7 +44,7 @@ class SalaryPaymentController extends Controller
     public function ledger(Request $request): JsonResponse
     {
         $request->validate([
-            'employee_id' => ['required', 'integer', 'exists:' . (new Employee())->getTable() . ',id'],
+            'employee_id' => ['required', 'integer', 'exists:' . (new Employee)->getTable() . ',id'],
         ]);
 
         $ledger = Payroll::getEmployeeSalaryLedger($request->integer('employee_id'));

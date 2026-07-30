@@ -96,7 +96,7 @@ class PayrollEntityRegistry
     {
         $modelClass = self::modelClass($entity);
 
-        return new $modelClass();
+        return new $modelClass;
     }
 
     public static function validationRules(string $entity, ?Model $record = null, array $payload = []): array
@@ -180,7 +180,7 @@ class PayrollEntityRegistry
             if (empty($field['related_model'])) {
                 continue;
             }
-            $related = new $field['related_model']();
+            $related = new $field['related_model'];
             $options[$field['name']] = $related->newQuery()
                 ->orderBy($field['related_label'])
                 ->get(['id', $field['related_label']])
