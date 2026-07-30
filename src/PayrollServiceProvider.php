@@ -144,6 +144,8 @@ class PayrollServiceProvider extends ServiceProvider
         }
 
         Livewire::component('payroll-dashboard', Http\Livewire\PayrollDashboard::class);
+        Livewire::component('payroll-charts-card', Http\Livewire\PayrollChartsCard::class);
+        Livewire::component('payroll-outstanding-card', Http\Livewire\PayrollOutstandingCard::class);
         Livewire::component('payroll-entries', Http\Livewire\PayrollEntriesPage::class);
         Livewire::component('payroll-employee-loans', Http\Livewire\EmployeeLoansPage::class);
         Livewire::component('payroll-employee-salary-ledger', Http\Livewire\EmployeeSalaryLedgerPage::class);
