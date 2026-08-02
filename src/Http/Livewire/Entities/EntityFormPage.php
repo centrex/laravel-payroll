@@ -36,7 +36,7 @@ class EntityFormPage extends Component
         }
     }
 
-    public function save(): \Illuminate\Http\RedirectResponse
+    public function save(): void
     {
         $record = $this->record(false);
         $payload = PayrollEntityRegistry::fillablePayload($this->entity, $this->form);
@@ -51,7 +51,7 @@ class EntityFormPage extends Component
 
         session()->flash('payroll.status', PayrollEntityRegistry::definition($this->entity)['singular'] . ' saved.');
 
-        return redirect()->route("payroll.entities.{$this->entity}.edit", ['recordId' => $record->getKey()]);
+        $this->redirect(route("payroll.entities.{$this->entity}.edit", ['recordId' => $record->getKey()]));
     }
 
     public function render(): View

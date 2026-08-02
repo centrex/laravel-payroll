@@ -6,6 +6,7 @@ namespace Centrex\Payroll\Tests;
 
 use Centrex\Payroll\PayrollServiceProvider;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Livewire\LivewireServiceProvider;
 use Orchestra\Testbench\TestCase as Orchestra;
 
 class TestCase extends Orchestra
@@ -24,6 +25,7 @@ class TestCase extends Orchestra
     protected function getPackageProviders($app)
     {
         return [
+            LivewireServiceProvider::class,
             PayrollServiceProvider::class,
         ];
     }
