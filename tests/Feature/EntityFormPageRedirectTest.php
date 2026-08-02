@@ -54,7 +54,7 @@ it('exposes validation errors under the plain field name, not a "form." prefix',
     // the form just silently didn't save, with nothing telling the user why.
     Employee::query()->create(['code' => 'EMP-DUP', 'name' => 'Existing Employee']);
 
-    $component = new EntityFormPage();
+    $component = new EntityFormPage;
     $component->mount('employees');
     $component->form['code'] = 'EMP-DUP';
     $component->form['name'] = 'Another Employee';
