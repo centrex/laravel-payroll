@@ -43,3 +43,35 @@ it('saves a new entity via EntityFormPage::save() without throwing', function ()
 
     expect(Employee::query()->where('code', 'EMP-TEST-001')->exists())->toBeTrue();
 });
+
+it('exposes validation errors under the plain field name, not a "form." prefix', function (): void {
+    // Regression test for a silent-failure bug: the view checks
+    // $errors->first($field['name']) (e.g. $errors->first('code')), but save()'s validator
+    // call validates a plain $payload array keyed by unprefixed field names — so the
+    // resulting ValidationException's error bag is ALSO keyed unprefixed ('code'), not
+    // 'form.code'. The view previously checked $errors->first('form.' . $field['name']),
+    // which never matched, so a failed save (e.g. duplicate code) showed no error at all —
+    // the form just silently didn't save, with nothing telling the user why.
+    Employee::query()->create(['code' => 'EMP-DUP', 'name' => 'Existing Employee']);
+
+    $component = new EntityFormPage();
+    $component->mount('employees');
+    $component->form['code'] = 'EMP-DUP';
+    $component->form['name'] = 'Another Employee';
+
+    try {
+        $component->save();
+        $this->fail('Expected a ValidationException for the duplicate code.');
+    } catch (Illuminate\Validation\ValidationException $e) {
+        expect($e->errors())->toHaveKey('code');
+    }
+
+    expect(Employee::query()->where('name', 'Another Employee')->exists())->toBeFalse();
+});
+
+it('form-page.blade.php checks errors under the plain field name', function (): void {
+    $view = file_get_contents(__DIR__ . '/../../resources/views/livewire/entities/form-page.blade.php');
+
+    expect($view)->not->toContain("errors->first('form.'")
+        ->not->toContain("errors->has('form.'");
+});

@@ -35,6 +35,18 @@ host app in production); the container-swap that caused the crash is orthogonal 
 was confirmed by reading Livewire's `SupportRedirects` source directly. The identical bug
 existed in `laravel-hr`'s own `EntityFormPage.php` (same original scaffold) — fixed there too.
 
+**Fixed** (2026-08-02, reported as "employee create not successful and showing no message",
+against the sibling `laravel-hr` package but confirmed identical here): `resources/views/livewire/entities/form-page.blade.php`
+checked `$errors->first('form.' . $field['name'])` / `$errors->has('form.' . $field['name'])`
+for every field, but `EntityFormPage::save()`'s `validator($payload, ...)->validate()` call
+validates a plain array keyed by **unprefixed** field names (`code`, `name`, ...) — so any
+`ValidationException` it threw populated the error bag under `code`/`name`/etc., never under
+`form.code`/`form.name`. The view's lookup never matched, so a failed save (e.g. a duplicate
+employee `code`) produced **no visible error at all** — the form just silently didn't save,
+with nothing telling the user why. `centrex/laravel-inventory`'s equivalent `EntityFormPage`/
+view already used the correct unprefixed form (`$errors->first($field['name'])`) — used as
+the reference fix. Added a regression test to `tests/Feature/EntityFormPageRedirectTest.php`.
+
 ## Style / static-analysis debt
 
 - `composer test` stops early: `rector --dry-run` (test:refacto) flags **1 file**:

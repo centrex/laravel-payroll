@@ -34,7 +34,7 @@
             @foreach ($definition['form_fields'] as $field)
                 <div class="{{ in_array($field['type'], ['textarea', 'json'], true) ? 'md:col-span-2' : '' }}">
                     @if ($field['type'] === 'textarea')
-                        <x-tallui-form-group :label="$field['label']" :error="$errors->first('form.' . $field['name'])">
+                        <x-tallui-form-group :label="$field['label']" :error="$errors->first($field['name'])">
                             <x-tallui-textarea
                                 :name="$field['name']"
                                 wire:model="form.{{ $field['name'] }}"
@@ -43,7 +43,7 @@
                         </x-tallui-form-group>
 
                     @elseif ($field['type'] === 'json')
-                        <x-tallui-form-group :label="$field['label']" :error="$errors->first('form.' . $field['name'])">
+                        <x-tallui-form-group :label="$field['label']" :error="$errors->first($field['name'])">
                             <x-tallui-textarea
                                 :name="$field['name']"
                                 placeholder='{"key": "value"}'
@@ -54,7 +54,7 @@
                         </x-tallui-form-group>
 
                     @elseif ($field['type'] === 'select')
-                        <x-tallui-form-group :label="$field['label']" :error="$errors->first('form.' . $field['name'])">
+                        <x-tallui-form-group :label="$field['label']" :error="$errors->first($field['name'])">
                             <x-tallui-select :name="$field['name']" wire:model="form.{{ $field['name'] }}">
                                 <option value="">Select {{ strtolower($field['label']) }}…</option>
                                 @foreach ($options[$field['name']] ?? [] as $option)
@@ -73,7 +73,7 @@
                         </div>
 
                     @else
-                        <x-tallui-form-group :label="$field['label']" :error="$errors->first('form.' . $field['name'])">
+                        <x-tallui-form-group :label="$field['label']" :error="$errors->first($field['name'])">
                             <x-tallui-input
                                 :name="$field['name']"
                                 :type="match($field['type']) {
@@ -84,7 +84,7 @@
                                 }"
                                 :step="$field['type'] === 'number' ? '0.0001' : null"
                                 wire:model="form.{{ $field['name'] }}"
-                                :class="$errors->has('form.' . $field['name']) ? 'input-error' : ''"
+                                :class="$errors->has($field['name']) ? 'input-error' : ''"
                             />
                         </x-tallui-form-group>
                     @endif
