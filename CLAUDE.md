@@ -268,6 +268,8 @@ PAYROLL_ADMIN_ROLES=admin,payroll-admin
 # PayrollAccount used to a real GL account.
 PAYROLL_ACCOUNTING_SYNC_ENABLED=false
 PAYROLL_ACCOUNT_SALARIES_PAYABLE=2250
+# Debited when an employee loan/advance is disbursed, credited when it's repaid.
+PAYROLL_ACCOUNT_EMPLOYEE_LOAN_RECEIVABLE=1450
 
 # percentage_of_basic salary-structure lines resolve against whichever PayrollAccount has this code
 PAYROLL_BASIC_ACCOUNT_CODE=BASIC
@@ -277,7 +279,7 @@ PAYROLL_TAX_ACCOUNT_CODE=TAX
 
 ## Cross-package integration
 
-- **`laravel-accounting`** (optional) — `Support\AccountingSync::postPayrollEntry()` posts one journal entry per approved `PayrollEntry`. Requires `accounting_sync.enabled=true` and every `PayrollAccount` used on the entry to have `accounting_account_id` set; throws `\RuntimeException` (not a silent partial post) if any are unmapped.
+- **`laravel-accounting`** (optional) — `Support\AccountingSync::postPayrollEntry()` posts one journal entry per approved `PayrollEntry`. Requires `accounting_sync.enabled=true` and every `PayrollAccount` used on the entry to have `accounting_account_id` set; throws `\RuntimeException` (not a silent partial post) if any are unmapped. `AccountingSync::postLoanDisbursement()`/`postLoanRepayment()` post the same way for `EmployeeLoan`/`EmployeeLoanRepayment` (DR/CR `payroll.accounts.employee_loan_receivable`, default code `1450`) — called by the Livewire/API loan-approve and repay actions right after `Payroll::approveLoan()`/`recordRepayment()`, same pattern as `postPayrollEntry()`/`postSalaryPayment()`. A `salary_deduction` repayment debits `salaries_payable` instead of cash, since no cash actually moves.
 - **`laravel-hr`** (optional, inbound) — `Centrex\Hr\Support\PayrollSync::syncEmployee()` mirrors an HR `Employee` into this package's `Employee` (`hr.payroll_sync.enabled=true`), linked via `modelable_type`/`modelable_id` here and `payroll_profile_type`/`payroll_profile_id` on the HR side — the same polymorphic-pair pattern `laravel-inventory`'s `ErpIntegration` uses for customers/suppliers.
 - **`laravel-inventory`** (optional) — `Payroll::calculateSalesCommission()` reads `Centrex\Inventory\Models\SaleOrder` directly (soft dependency via `class_exists()`) to compute commission from real sales, matched by `Employee::user_id` ⇄ `SaleOrder::sales_executive_id`.
 

@@ -27,7 +27,7 @@ class EmployeeLoanRepayment extends Model
 
     protected $fillable = [
         'employee_loan_id', 'payroll_entry_id',
-        'amount', 'method', 'repaid_at', 'notes', 'created_by',
+        'amount', 'method', 'repaid_at', 'notes', 'created_by', 'journal_entry_id',
     ];
 
     protected $casts = [

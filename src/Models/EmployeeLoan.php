@@ -32,7 +32,7 @@ class EmployeeLoan extends Model
         'amount', 'disbursed_amount', 'outstanding_balance',
         'installment_amount', 'installments', 'currency',
         'issue_date', 'expected_completion_date', 'notes',
-        'created_by', 'approved_by', 'approved_at',
+        'created_by', 'approved_by', 'approved_at', 'journal_entry_id',
     ];
 
     protected $casts = [

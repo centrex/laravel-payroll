@@ -40,6 +40,8 @@ return [
         // Credited when a salary payment is posted and no 'account_code' is given explicitly
         // (same convention as laravel-accounting's recordInvoicePayment/recordBillPayment).
         'default_cash' => env('PAYROLL_ACCOUNT_DEFAULT_CASH', '1000'),
+        // Debited when an employee loan/advance is disbursed, credited when it's repaid.
+        'employee_loan_receivable' => env('PAYROLL_ACCOUNT_EMPLOYEE_LOAN_RECEIVABLE', '1450'),
     ],
 
     // Salary structures: percentage_of_basic lines resolve against whichever Payroll

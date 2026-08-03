@@ -4,7 +4,8 @@ declare(strict_types = 1);
 
 namespace Centrex\Payroll\Support;
 
-use Centrex\Payroll\Models\{PayrollEntry, SalaryPayment};
+use Centrex\Payroll\Enums\RepaymentMethod;
+use Centrex\Payroll\Models\{EmployeeLoan, EmployeeLoanRepayment, PayrollEntry, SalaryPayment};
 
 /**
  * Posts an approved PayrollEntry as a single journal entry in laravel-accounting, mirroring
@@ -188,6 +189,124 @@ class AccountingSync
         $payment->update(['journal_entry_id' => $journalEntry->id]);
 
         return (int) $journalEntry->id;
+    }
+
+    /**
+     * Posts a loan/advance disbursement: debits the employee-loan-receivable control account
+     * and credits the cash/bank account the money actually left from. Called on approval
+     * (Payroll::approveLoan() disburses the full loan amount in one go — there's no partial
+     * disbursement, unlike salary payments).
+     *
+     * $cashAccountCode mirrors postSalaryPayment()'s $accountCode parameter; defaults to
+     * config('payroll.accounts.default_cash').
+     */
+    public function postLoanDisbursement(EmployeeLoan $loan, ?string $cashAccountCode = null): ?int
+    {
+        if (!$this->enabled() || $loan->journal_entry_id) {
+            return null;
+        }
+
+        $loan->loadMissing('employee');
+
+        $receivableAccount = $this->requireAccount(
+            (string) config('payroll.accounts.employee_loan_receivable', '1450'),
+            'employee-loan-receivable',
+        );
+        $cashAccount = $this->requireAccount(
+            $cashAccountCode ?: (string) config('payroll.accounts.default_cash', '1000'),
+            'disbursement',
+        );
+
+        $amount = round((float) $loan->disbursed_amount, 2);
+
+        $accounting = app(\Centrex\Accounting\Accounting::class);
+
+        $journalEntry = $accounting->createJournalEntry([
+            'date'        => $loan->approved_at?->toDateString() ?? $loan->issue_date,
+            'reference'   => $loan->loan_number,
+            'type'        => 'general',
+            'description' => 'Loan disbursed — ' . $loan->loan_number
+                . ' (' . ($loan->employee?->name ?? ('employee #' . $loan->employee_id)) . ')',
+            'currency'      => $loan->currency,
+            'exchange_rate' => 1.0,
+            'sbu_code'      => $loan->employee?->sbu_code,
+            'lines'         => [
+                ['account_id' => $receivableAccount->id, 'type' => 'debit', 'amount' => $amount, 'description' => 'Employee loan/advance disbursed'],
+                ['account_id' => $cashAccount->id, 'type' => 'credit', 'amount' => $amount, 'description' => 'Loan disbursed — ' . $loan->repayment_method->value],
+            ],
+        ]);
+
+        $journalEntry->post();
+
+        $loan->update(['journal_entry_id' => $journalEntry->id]);
+
+        return (int) $journalEntry->id;
+    }
+
+    /**
+     * Posts a loan/advance repayment: credits the employee-loan-receivable control account.
+     * The debit side depends on how the repayment actually happened — a salary_deduction
+     * repayment never moves cash (it was withheld from the payslip), so it debits
+     * salaries-payable instead of cash/bank, reducing what's owed to the employee.
+     *
+     * $accountCode (cash/bank_transfer repayments only) mirrors postSalaryPayment()'s
+     * $accountCode parameter; defaults to config('payroll.accounts.default_cash').
+     */
+    public function postLoanRepayment(EmployeeLoanRepayment $repayment, ?string $accountCode = null): ?int
+    {
+        if (!$this->enabled() || $repayment->journal_entry_id) {
+            return null;
+        }
+
+        $repayment->loadMissing('loan.employee');
+        $loan = $repayment->loan;
+
+        $receivableAccount = $this->requireAccount(
+            (string) config('payroll.accounts.employee_loan_receivable', '1450'),
+            'employee-loan-receivable',
+        );
+
+        $debitAccount = $repayment->method === RepaymentMethod::SalaryDeduction
+            ? $this->requireAccount((string) config('payroll.accounts.salaries_payable'), 'salaries-payable')
+            : $this->requireAccount($accountCode ?: (string) config('payroll.accounts.default_cash', '1000'), 'repayment');
+
+        $amount = round((float) $repayment->amount, 2);
+
+        $accounting = app(\Centrex\Accounting\Accounting::class);
+
+        $journalEntry = $accounting->createJournalEntry([
+            'date'        => $repayment->repaid_at,
+            'reference'   => $loan->loan_number . '-RPY-' . $repayment->id,
+            'type'        => 'general',
+            'description' => 'Loan repayment — ' . $loan->loan_number
+                . ' (' . ($loan->employee?->name ?? ('employee #' . $loan->employee_id)) . ') via ' . $repayment->method->label(),
+            'currency'      => $loan->currency,
+            'exchange_rate' => 1.0,
+            'sbu_code'      => $loan->employee?->sbu_code,
+            'lines'         => [
+                ['account_id' => $debitAccount->id, 'type' => 'debit', 'amount' => $amount, 'description' => 'Loan repayment'],
+                ['account_id' => $receivableAccount->id, 'type' => 'credit', 'amount' => $amount, 'description' => 'Employee loan/advance repaid'],
+            ],
+        ]);
+
+        $journalEntry->post();
+
+        $repayment->update(['journal_entry_id' => $journalEntry->id]);
+
+        return (int) $journalEntry->id;
+    }
+
+    private function requireAccount(string $code, string $label): \Centrex\Accounting\Models\Account
+    {
+        $account = \Centrex\Accounting\Models\Account::where('code', $code)
+            ->where('is_active', true)
+            ->first();
+
+        if (!$account) {
+            throw new \RuntimeException("Payroll {$label} account (code {$code}) not found or inactive.");
+        }
+
+        return $account;
     }
 
     /**

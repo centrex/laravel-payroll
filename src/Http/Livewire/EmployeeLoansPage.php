@@ -5,10 +5,12 @@ declare(strict_types = 1);
 namespace Centrex\Payroll\Http\Livewire;
 
 use Centrex\Payroll\Enums\{LoanStatus, LoanType, RepaymentMethod};
-use Centrex\Payroll\Exceptions\{InvalidLoanTransitionException, LoanRepaymentExceedsBalanceException};
+use Centrex\Payroll\Exceptions\InvalidLoanTransitionException;
 use Centrex\Payroll\Facades\Payroll;
 use Centrex\Payroll\Models\{Employee, EmployeeLoan};
+use Centrex\Payroll\Support\AccountingSync;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\DB;
 use Livewire\{Component, WithPagination};
 
 class EmployeeLoansPage extends Component
@@ -111,9 +113,12 @@ class EmployeeLoansPage extends Component
         $loan = EmployeeLoan::findOrFail($id);
 
         try {
-            Payroll::approveLoan($loan);
+            DB::transaction(function () use ($loan): void {
+                Payroll::approveLoan($loan);
+                app(AccountingSync::class)->postLoanDisbursement($loan);
+            });
             $this->dispatch('notify', type: 'success', message: "Loan {$loan->loan_number} approved.");
-        } catch (InvalidLoanTransitionException $e) {
+        } catch (\RuntimeException $e) {
             $this->dispatch('notify', type: 'error', message: $e->getMessage());
         }
     }
@@ -154,16 +159,20 @@ class EmployeeLoansPage extends Component
         $loan = EmployeeLoan::findOrFail($this->repayLoanId);
 
         try {
-            Payroll::recordRepayment($loan, [
-                'amount'    => $this->repayAmount,
-                'method'    => $this->repayMethod,
-                'repaid_at' => $this->repayDate,
-                'notes'     => $this->repayNotes ?: null,
-            ]);
+            DB::transaction(function () use ($loan): void {
+                $repayment = Payroll::recordRepayment($loan, [
+                    'amount'    => $this->repayAmount,
+                    'method'    => $this->repayMethod,
+                    'repaid_at' => $this->repayDate,
+                    'notes'     => $this->repayNotes ?: null,
+                ]);
+
+                app(AccountingSync::class)->postLoanRepayment($repayment);
+            });
 
             $this->dispatch('notify', type: 'success', message: 'Repayment recorded successfully.');
             $this->showRepayModal = false;
-        } catch (InvalidLoanTransitionException|LoanRepaymentExceedsBalanceException $e) {
+        } catch (\RuntimeException $e) {
             $this->dispatch('notify', type: 'error', message: $e->getMessage());
         }
     }
