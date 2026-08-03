@@ -17,21 +17,21 @@ it('does not post or throw when accounting sync is disabled', function (): void 
     config()->set('payroll.accounting_sync.enabled', false);
 
     $employee = Employee::create([
-        'code' => 'EMP-001', 'name' => 'Jane Doe', 'department' => 'Sales',
-        'designation' => 'Sales Executive', 'employment_type' => 'full_time',
+        'code'           => 'EMP-001', 'name' => 'Jane Doe', 'department' => 'Sales',
+        'designation'    => 'Sales Executive', 'employment_type' => 'full_time',
         'monthly_salary' => 50000, 'currency' => 'BDT', 'is_active' => true,
     ]);
 
     $loan = EmployeeLoan::create([
         'loan_number' => 'LOAN-TEST-00001', 'employee_id' => $employee->id,
-        'type' => 'loan', 'status' => 'active', 'repayment_method' => 'cash',
-        'amount' => 10000, 'disbursed_amount' => 10000, 'outstanding_balance' => 5000,
-        'currency' => 'BDT', 'issue_date' => now()->toDateString(),
+        'type'        => 'loan', 'status' => 'active', 'repayment_method' => 'cash',
+        'amount'      => 10000, 'disbursed_amount' => 10000, 'outstanding_balance' => 5000,
+        'currency'    => 'BDT', 'issue_date' => now()->toDateString(),
     ]);
 
     $repayment = EmployeeLoanRepayment::create([
         'employee_loan_id' => $loan->id, 'amount' => 5000,
-        'method' => 'cash', 'repaid_at' => now()->toDateString(),
+        'method'           => 'cash', 'repaid_at' => now()->toDateString(),
     ]);
 
     $sync = app(AccountingSync::class);
