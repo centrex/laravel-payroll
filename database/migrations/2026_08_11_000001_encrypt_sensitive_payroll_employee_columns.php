@@ -61,7 +61,7 @@ return new class extends Migration
                     if ($row->{$column} !== null && $row->{$column} !== '') {
                         try {
                             $update[$column] = Crypt::decryptString($row->{$column});
-                        } catch (\Throwable) {
+                        } catch (Throwable) {
                             // Already plaintext (e.g. row inserted after a partial rollback) — leave as-is.
                         }
                     }
