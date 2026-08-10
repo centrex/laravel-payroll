@@ -91,7 +91,7 @@
                         <td class="pr-5">
                             <div class="flex justify-end gap-1">
                                 @if($loan->status->value === 'pending')
-                                    <x-tallui-button wire:click="approve({{ $loan->id }})" class="btn-success btn-xs">Approve</x-tallui-button>
+                                    <x-tallui-button wire:click="approve({{ $loan->id }})" spinner="approve({{ $loan->id }})" class="btn-success btn-xs">Approve</x-tallui-button>
                                     <x-tallui-button wire:click="cancel({{ $loan->id }})" class="btn-error btn-xs btn-outline">Cancel</x-tallui-button>
                                 @elseif($loan->status->value === 'active')
                                     <x-tallui-button wire:click="openRepay({{ $loan->id }})" icon="o-currency-dollar" class="btn-primary btn-xs">Repay</x-tallui-button>
@@ -196,7 +196,7 @@
 
     <x-slot:footer>
         <x-tallui-button wire:click="$set('showIssueModal', false)" class="btn-ghost">Cancel</x-tallui-button>
-        <x-tallui-button wire:click="issueLoan" class="btn-primary">Issue Loan / Advance</x-tallui-button>
+        <x-tallui-button wire:click="issueLoan" :spinner="'issueLoan'" class="btn-primary">Issue Loan / Advance</x-tallui-button>
     </x-slot:footer>
 </x-tallui-modal>
 
@@ -234,7 +234,7 @@
 
     <x-slot:footer>
         <x-tallui-button wire:click="$set('showRepayModal', false)" class="btn-ghost">Cancel</x-tallui-button>
-        <x-tallui-button wire:click="recordRepayment" class="btn-primary">Record Repayment</x-tallui-button>
+        <x-tallui-button wire:click="recordRepayment" :spinner="'recordRepayment'" class="btn-primary">Record Repayment</x-tallui-button>
     </x-slot:footer>
 </x-tallui-modal>
 </div>

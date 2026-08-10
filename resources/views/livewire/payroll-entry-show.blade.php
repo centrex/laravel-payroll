@@ -192,7 +192,7 @@
 
     <x-slot:footer>
         <x-tallui-button wire:click="$set('showPayModal', false)" class="btn-ghost">Cancel</x-tallui-button>
-        <x-tallui-button wire:click="recordPayment" class="btn-primary">Record Payment</x-tallui-button>
+        <x-tallui-button wire:click="recordPayment" :spinner="'recordPayment'" class="btn-primary">Record Payment</x-tallui-button>
     </x-slot:footer>
 </x-tallui-modal>
 </div>
