@@ -23,8 +23,8 @@ beforeEach(function (): void {
 function makeEmployee(): Employee
 {
     return Employee::create([
-        'code' => 'EMP-Q-1', 'name' => 'Queue Test Employee', 'department' => 'Sales',
-        'designation' => 'Sales Executive', 'employment_type' => 'full_time',
+        'code'           => 'EMP-Q-1', 'name' => 'Queue Test Employee', 'department' => 'Sales',
+        'designation'    => 'Sales Executive', 'employment_type' => 'full_time',
         'monthly_salary' => 50000, 'currency' => 'BDT', 'is_active' => true,
     ]);
 }
@@ -32,7 +32,7 @@ function makeEmployee(): Employee
 function makePayrollAccount(): PayrollAccount
 {
     return PayrollAccount::create([
-        'code' => 'BASIC-Q', 'name' => 'Basic Salary', 'component_type' => 'earning',
+        'code'     => 'BASIC-Q', 'name' => 'Basic Salary', 'component_type' => 'earning',
         'currency' => 'BDT', 'is_active' => true,
     ]);
 }
@@ -42,7 +42,7 @@ it('dispatches the accounting post job when a payroll entry is approved', functi
 
     $employee = makeEmployee();
     $entry = PayrollEntry::create([
-        'date' => now()->toDateString(), 'type' => 'salary', 'currency' => 'BDT',
+        'date'          => now()->toDateString(), 'type' => 'salary', 'currency' => 'BDT',
         'exchange_rate' => 1, 'status' => 'draft', 'description' => 'Queue test run',
     ]);
     PayrollEntryLine::create(['payroll_entry_id' => $entry->id, 'employee_id' => $employee->id, 'payroll_account_id' => makePayrollAccount()->id, 'amount' => 1000]);
@@ -60,9 +60,9 @@ it('dispatches the accounting post job when a loan is approved and when it is re
     $employee = makeEmployee();
     $loan = EmployeeLoan::create([
         'loan_number' => 'LOAN-Q-00001', 'employee_id' => $employee->id,
-        'type' => 'loan', 'status' => 'pending', 'repayment_method' => 'cash',
-        'amount' => 10000, 'disbursed_amount' => 0, 'outstanding_balance' => 10000,
-        'currency' => 'BDT', 'issue_date' => now()->toDateString(),
+        'type'        => 'loan', 'status' => 'pending', 'repayment_method' => 'cash',
+        'amount'      => 10000, 'disbursed_amount' => 0, 'outstanding_balance' => 10000,
+        'currency'    => 'BDT', 'issue_date' => now()->toDateString(),
     ]);
 
     $page = new EmployeeLoansPage;
@@ -86,7 +86,7 @@ it('dispatches the accounting post job when a salary payment is recorded', funct
 
     $employee = makeEmployee();
     $entry = PayrollEntry::create([
-        'date' => now()->toDateString(), 'type' => 'salary', 'currency' => 'BDT',
+        'date'          => now()->toDateString(), 'type' => 'salary', 'currency' => 'BDT',
         'exchange_rate' => 1, 'status' => 'approved', 'approved_at' => now(), 'description' => 'Queue test run 2',
     ]);
     PayrollEntryLine::create(['payroll_entry_id' => $entry->id, 'employee_id' => $employee->id, 'payroll_account_id' => makePayrollAccount()->id, 'amount' => 5000]);
@@ -107,7 +107,7 @@ it('dispatches the accounting post job when a salary payment is recorded', funct
 it('records the failure onto the entry when the accounting post job ultimately fails, and clears it on retry', function (): void {
     $employee = makeEmployee();
     $entry = PayrollEntry::create([
-        'date' => now()->toDateString(), 'type' => 'salary', 'currency' => 'BDT',
+        'date'          => now()->toDateString(), 'type' => 'salary', 'currency' => 'BDT',
         'exchange_rate' => 1, 'status' => 'approved', 'approved_at' => now(), 'description' => 'Failure visibility test',
     ]);
     PayrollEntryLine::create(['payroll_entry_id' => $entry->id, 'employee_id' => $employee->id, 'payroll_account_id' => makePayrollAccount()->id, 'amount' => 1000]);
