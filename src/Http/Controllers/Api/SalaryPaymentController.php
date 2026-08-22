@@ -5,11 +5,10 @@ declare(strict_types = 1);
 namespace Centrex\Payroll\Http\Controllers\Api;
 
 use Centrex\Payroll\Facades\Payroll;
-use Centrex\Payroll\Models\{Employee, PayrollEntry, SalaryPayment};
-use Centrex\Payroll\Support\AccountingSync;
+use Centrex\Payroll\Jobs\PostSalaryPaymentToAccountingJob;
+use Centrex\Payroll\Models\{Employee, PayrollEntry};
 use Illuminate\Http\{JsonResponse, Request};
 use Illuminate\Routing\Controller;
-use Illuminate\Support\Facades\DB;
 
 class SalaryPaymentController extends Controller
 {
@@ -28,15 +27,15 @@ class SalaryPaymentController extends Controller
         $data['created_by'] = optional($request->user())->getAuthIdentifier();
 
         try {
-            $payment = DB::transaction(function () use ($payrollEntry, $data): SalaryPayment {
-                $payment = Payroll::recordSalaryPayment($payrollEntry, (int) $data['employee_id'], $data);
-                app(AccountingSync::class)->postSalaryPayment($payment, $data['account_code'] ?? null);
-
-                return $payment;
-            });
+            $payment = Payroll::recordSalaryPayment($payrollEntry, (int) $data['employee_id'], $data);
         } catch (\RuntimeException $e) {
             return response()->json(['message' => $e->getMessage()], 422);
         }
+
+        // Queued — see PostPayrollEntryToAccountingJob's docblock (same pattern). A posting
+        // failure is recorded onto the payment's accounting_sync_error column instead of
+        // rolling back or failing this response.
+        PostSalaryPaymentToAccountingJob::dispatch($payment->id, $data['account_code'] ?? null)->afterCommit();
 
         return response()->json(['data' => $payment->load(['employee', 'payrollEntry'])], 201);
     }

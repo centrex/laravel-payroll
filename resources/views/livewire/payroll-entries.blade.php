@@ -71,15 +71,25 @@
                         <td class="text-sm text-base-content/60">{{ $entry->lines->pluck('employee_id')->filter()->unique()->count() }}</td>
                         <td class="text-right text-sm font-mono font-medium">{{ number_format($entry->lines->sum('amount'), 2) }}</td>
                         <td>
-                            <x-tallui-badge :type="$entry->status === 'approved' ? 'success' : 'neutral'">
-                                {{ ucfirst($entry->status) }}
-                            </x-tallui-badge>
+                            <div class="flex items-center gap-1">
+                                <x-tallui-badge :type="$entry->status === 'approved' ? 'success' : 'neutral'">
+                                    {{ ucfirst($entry->status) }}
+                                </x-tallui-badge>
+                                @if($entry->accounting_sync_error)
+                                    <x-tallui-tooltip :text="$entry->accounting_sync_error" position="top" color="error">
+                                        <x-tallui-badge type="error" size="sm">Accounting sync failed</x-tallui-badge>
+                                    </x-tallui-tooltip>
+                                @endif
+                            </div>
                         </td>
                         <td class="pr-5">
                             <div class="flex justify-end gap-1">
                                 <x-tallui-button :link="route('payroll.entries.show', ['payrollEntryId' => $entry->id])" icon="o-eye" class="btn-ghost btn-xs">View</x-tallui-button>
                                 @if($entry->status === 'draft')
                                     <x-tallui-button wire:click="approve({{ $entry->id }})" spinner="approve({{ $entry->id }})" class="btn-success btn-xs">Approve</x-tallui-button>
+                                @endif
+                                @if($entry->accounting_sync_error)
+                                    <x-tallui-button wire:click="retryAccountingSync({{ $entry->id }})" spinner="retryAccountingSync({{ $entry->id }})" icon="o-arrow-path" class="btn-warning btn-xs">Retry Sync</x-tallui-button>
                                 @endif
                             </div>
                         </td>

@@ -7,11 +7,10 @@ namespace Centrex\Payroll\Http\Controllers\Api;
 use Centrex\Payroll\Enums\{LoanType, RepaymentMethod};
 use Centrex\Payroll\Exceptions\InvalidLoanTransitionException;
 use Centrex\Payroll\Facades\Payroll;
+use Centrex\Payroll\Jobs\{PostLoanDisbursementToAccountingJob, PostLoanRepaymentToAccountingJob};
 use Centrex\Payroll\Models\{Employee, EmployeeLoan};
-use Centrex\Payroll\Support\AccountingSync;
 use Illuminate\Http\{JsonResponse, Request};
 use Illuminate\Routing\Controller;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class EmployeeLoanController extends Controller
@@ -63,13 +62,13 @@ class EmployeeLoanController extends Controller
     public function approve(Request $request, EmployeeLoan $employeeLoan): JsonResponse
     {
         try {
-            DB::transaction(function () use ($request, $employeeLoan): void {
-                Payroll::approveLoan($employeeLoan, optional($request->user())->getAuthIdentifier());
-                app(AccountingSync::class)->postLoanDisbursement($employeeLoan);
-            });
+            Payroll::approveLoan($employeeLoan, optional($request->user())->getAuthIdentifier());
         } catch (\RuntimeException $e) {
             return response()->json(['message' => $e->getMessage()], 422);
         }
+
+        // Queued — see PostPayrollEntryToAccountingJob's docblock (same pattern).
+        PostLoanDisbursementToAccountingJob::dispatch($employeeLoan->id)->afterCommit();
 
         return response()->json(['data' => $employeeLoan->fresh()->load(['employee', 'repayments'])]);
     }
@@ -87,15 +86,13 @@ class EmployeeLoanController extends Controller
         $data['created_by'] = optional($request->user())->getAuthIdentifier();
 
         try {
-            $repayment = DB::transaction(function () use ($employeeLoan, $data) {
-                $repayment = Payroll::recordRepayment($employeeLoan, $data);
-                app(AccountingSync::class)->postLoanRepayment($repayment);
-
-                return $repayment;
-            });
+            $repayment = Payroll::recordRepayment($employeeLoan, $data);
         } catch (\RuntimeException $e) {
             return response()->json(['message' => $e->getMessage()], 422);
         }
+
+        // Queued — see PostPayrollEntryToAccountingJob's docblock (same pattern).
+        PostLoanRepaymentToAccountingJob::dispatch($repayment->id)->afterCommit();
 
         return response()->json([
             'data' => $repayment,

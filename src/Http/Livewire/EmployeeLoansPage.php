@@ -7,10 +7,9 @@ namespace Centrex\Payroll\Http\Livewire;
 use Centrex\Payroll\Enums\{LoanStatus, LoanType, RepaymentMethod};
 use Centrex\Payroll\Exceptions\InvalidLoanTransitionException;
 use Centrex\Payroll\Facades\Payroll;
-use Centrex\Payroll\Models\{Employee, EmployeeLoan};
-use Centrex\Payroll\Support\AccountingSync;
+use Centrex\Payroll\Jobs\{PostLoanDisbursementToAccountingJob, PostLoanRepaymentToAccountingJob};
+use Centrex\Payroll\Models\{Employee, EmployeeLoan, EmployeeLoanRepayment};
 use Illuminate\Contracts\View\View;
-use Illuminate\Support\Facades\DB;
 use Livewire\{Component, WithPagination};
 
 class EmployeeLoansPage extends Component
@@ -113,14 +112,17 @@ class EmployeeLoansPage extends Component
         $loan = EmployeeLoan::findOrFail($id);
 
         try {
-            DB::transaction(function () use ($loan): void {
-                Payroll::approveLoan($loan);
-                app(AccountingSync::class)->postLoanDisbursement($loan);
-            });
-            $this->dispatch('notify', type: 'success', message: "Loan {$loan->loan_number} approved.");
+            Payroll::approveLoan($loan);
         } catch (\RuntimeException $e) {
             $this->dispatch('notify', type: 'error', message: $e->getMessage());
+
+            return;
         }
+
+        // Queued — see PostPayrollEntryToAccountingJob's docblock (same pattern).
+        PostLoanDisbursementToAccountingJob::dispatch($loan->id)->afterCommit();
+
+        $this->dispatch('notify', type: 'success', message: "Loan {$loan->loan_number} approved.");
     }
 
     public function cancel(int $id): void
@@ -159,22 +161,43 @@ class EmployeeLoansPage extends Component
         $loan = EmployeeLoan::findOrFail($this->repayLoanId);
 
         try {
-            DB::transaction(function () use ($loan): void {
-                $repayment = Payroll::recordRepayment($loan, [
-                    'amount'    => $this->repayAmount,
-                    'method'    => $this->repayMethod,
-                    'repaid_at' => $this->repayDate,
-                    'notes'     => $this->repayNotes ?: null,
-                ]);
-
-                app(AccountingSync::class)->postLoanRepayment($repayment);
-            });
-
-            $this->dispatch('notify', type: 'success', message: 'Repayment recorded successfully.');
-            $this->showRepayModal = false;
+            $repayment = Payroll::recordRepayment($loan, [
+                'amount'    => $this->repayAmount,
+                'method'    => $this->repayMethod,
+                'repaid_at' => $this->repayDate,
+                'notes'     => $this->repayNotes ?: null,
+            ]);
         } catch (\RuntimeException $e) {
             $this->dispatch('notify', type: 'error', message: $e->getMessage());
+
+            return;
         }
+
+        // Queued — see PostPayrollEntryToAccountingJob's docblock (same pattern).
+        PostLoanRepaymentToAccountingJob::dispatch($repayment->id)->afterCommit();
+
+        $this->dispatch('notify', type: 'success', message: 'Repayment recorded successfully.');
+        $this->showRepayModal = false;
+    }
+
+    public function retryLoanAccountingSync(int $id): void
+    {
+        $loan = EmployeeLoan::findOrFail($id);
+        $loan->forceFill(['accounting_sync_error' => null])->saveQuietly();
+
+        PostLoanDisbursementToAccountingJob::dispatch($loan->id)->afterCommit();
+
+        $this->dispatch('notify', type: 'info', message: 'Retrying accounting sync…');
+    }
+
+    public function retryRepaymentAccountingSync(int $id): void
+    {
+        $repayment = EmployeeLoanRepayment::findOrFail($id);
+        $repayment->forceFill(['accounting_sync_error' => null])->saveQuietly();
+
+        PostLoanRepaymentToAccountingJob::dispatch($repayment->id)->afterCommit();
+
+        $this->dispatch('notify', type: 'info', message: 'Retrying accounting sync…');
     }
 
     public function render(): View

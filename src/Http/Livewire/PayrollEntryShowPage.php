@@ -5,10 +5,9 @@ declare(strict_types = 1);
 namespace Centrex\Payroll\Http\Livewire;
 
 use Centrex\Payroll\Facades\Payroll;
+use Centrex\Payroll\Jobs\{PostPayrollEntryToAccountingJob, PostSalaryPaymentToAccountingJob};
 use Centrex\Payroll\Models\{Employee, PayrollEntry};
-use Centrex\Payroll\Support\AccountingSync;
 use Illuminate\Contracts\View\View;
-use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
 class PayrollEntryShowPage extends Component
@@ -50,22 +49,27 @@ class PayrollEntryShowPage extends Component
             return;
         }
 
-        try {
-            DB::transaction(function () use ($entry): void {
-                $entry->update([
-                    'status'      => 'approved',
-                    'approved_at' => now(),
-                ]);
+        $entry->update([
+            'status'      => 'approved',
+            'approved_at' => now(),
+        ]);
 
-                app(AccountingSync::class)->postPayrollEntry($entry);
-            });
-        } catch (\RuntimeException $e) {
-            $this->dispatch('notify', type: 'error', message: $e->getMessage());
-
-            return;
-        }
+        // Queued — see PostPayrollEntryToAccountingJob's docblock. A posting failure no
+        // longer blocks approval; it's recorded onto the entry's accounting_sync_error
+        // column instead.
+        PostPayrollEntryToAccountingJob::dispatch($entry->id)->afterCommit();
 
         $this->dispatch('notify', type: 'success', message: "Payroll {$entry->entry_number} approved.");
+    }
+
+    public function retryAccountingSync(): void
+    {
+        $entry = PayrollEntry::findOrFail($this->payrollEntryId);
+        $entry->forceFill(['accounting_sync_error' => null])->saveQuietly();
+
+        PostPayrollEntryToAccountingJob::dispatch($entry->id)->afterCommit();
+
+        $this->dispatch('notify', type: 'info', message: 'Retrying accounting sync…');
     }
 
     public function openPay(int $employeeId): void
@@ -98,23 +102,24 @@ class PayrollEntryShowPage extends Component
         $entry = PayrollEntry::findOrFail($this->payrollEntryId);
 
         try {
-            DB::transaction(function () use ($entry): void {
-                $payment = Payroll::recordSalaryPayment($entry, (int) $this->payEmployeeId, [
-                    'amount'    => $this->payAmount,
-                    'method'    => $this->payMethod,
-                    'paid_at'   => $this->payDate,
-                    'reference' => $this->payReference ?: null,
-                    'notes'     => $this->payNotes ?: null,
-                ]);
-
-                app(AccountingSync::class)->postSalaryPayment($payment);
-            });
-
-            $this->dispatch('notify', type: 'success', message: 'Salary payment recorded.');
-            $this->showPayModal = false;
+            $payment = Payroll::recordSalaryPayment($entry, (int) $this->payEmployeeId, [
+                'amount'    => $this->payAmount,
+                'method'    => $this->payMethod,
+                'paid_at'   => $this->payDate,
+                'reference' => $this->payReference ?: null,
+                'notes'     => $this->payNotes ?: null,
+            ]);
         } catch (\RuntimeException $e) {
             $this->dispatch('notify', type: 'error', message: $e->getMessage());
+
+            return;
         }
+
+        // Queued — see PostPayrollEntryToAccountingJob's docblock (same pattern).
+        PostSalaryPaymentToAccountingJob::dispatch($payment->id)->afterCommit();
+
+        $this->dispatch('notify', type: 'success', message: 'Salary payment recorded.');
+        $this->showPayModal = false;
     }
 
     public function render(): View

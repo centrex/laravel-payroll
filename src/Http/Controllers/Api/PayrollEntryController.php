@@ -6,8 +6,8 @@ namespace Centrex\Payroll\Http\Controllers\Api;
 
 use Centrex\Payroll\Http\Requests\StorePayrollEntryRequest;
 use Centrex\Payroll\Http\Resources\PayrollEntryResource;
+use Centrex\Payroll\Jobs\PostPayrollEntryToAccountingJob;
 use Centrex\Payroll\Models\{Employee, PayrollEntry, PayrollEntryLine};
-use Centrex\Payroll\Support\AccountingSync;
 use Illuminate\Http\{JsonResponse, Request};
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
@@ -86,19 +86,16 @@ class PayrollEntryController extends Controller
             return response()->json(['message' => 'Only draft payroll entries can be approved.'], 422);
         }
 
-        try {
-            DB::transaction(function () use ($request, $payrollEntry): void {
-                $payrollEntry->update([
-                    'status'      => 'approved',
-                    'approved_by' => optional($request->user())->getAuthIdentifier(),
-                    'approved_at' => now(),
-                ]);
+        $payrollEntry->update([
+            'status'      => 'approved',
+            'approved_by' => optional($request->user())->getAuthIdentifier(),
+            'approved_at' => now(),
+        ]);
 
-                app(AccountingSync::class)->postPayrollEntry($payrollEntry);
-            });
-        } catch (\RuntimeException $e) {
-            return response()->json(['message' => $e->getMessage()], 422);
-        }
+        // Queued — see PostPayrollEntryToAccountingJob's docblock. A posting failure no
+        // longer rolls back this approval; it's recorded onto the entry's
+        // accounting_sync_error column instead.
+        PostPayrollEntryToAccountingJob::dispatch($payrollEntry->id)->afterCommit();
 
         return response()->json([
             'data' => new PayrollEntryResource($payrollEntry->fresh()->load(['lines.employee', 'lines.payrollAccount'])),

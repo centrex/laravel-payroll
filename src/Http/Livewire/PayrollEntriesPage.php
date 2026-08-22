@@ -5,8 +5,8 @@ declare(strict_types = 1);
 namespace Centrex\Payroll\Http\Livewire;
 
 use Centrex\Payroll\Facades\Payroll;
+use Centrex\Payroll\Jobs\PostPayrollEntryToAccountingJob;
 use Centrex\Payroll\Models\{Employee, PayrollAccount, PayrollEntry, PayrollEntryLine};
-use Centrex\Payroll\Support\AccountingSync;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
 use Livewire\{Component, WithPagination};
@@ -215,22 +215,27 @@ class PayrollEntriesPage extends Component
             return;
         }
 
-        try {
-            DB::transaction(function () use ($entry): void {
-                $entry->update([
-                    'status'      => 'approved',
-                    'approved_at' => now(),
-                ]);
+        $entry->update([
+            'status'      => 'approved',
+            'approved_at' => now(),
+        ]);
 
-                app(AccountingSync::class)->postPayrollEntry($entry);
-            });
-        } catch (\RuntimeException $e) {
-            $this->dispatch('notify', type: 'error', message: $e->getMessage());
-
-            return;
-        }
+        // Queued — see PostPayrollEntryToAccountingJob's docblock. A posting failure no
+        // longer blocks approval; it's recorded onto the entry's accounting_sync_error
+        // column and surfaced by the "Accounting sync failed" banner below.
+        PostPayrollEntryToAccountingJob::dispatch($entry->id)->afterCommit();
 
         $this->dispatch('notify', type: 'success', message: "Payroll {$entry->entry_number} approved.");
+    }
+
+    public function retryAccountingSync(int $id): void
+    {
+        $entry = PayrollEntry::findOrFail($id);
+        $entry->forceFill(['accounting_sync_error' => null])->saveQuietly();
+
+        PostPayrollEntryToAccountingJob::dispatch($entry->id)->afterCommit();
+
+        $this->dispatch('notify', type: 'info', message: 'Retrying accounting sync…');
     }
 
     public function getTotalProperty(): float

@@ -5,10 +5,9 @@ declare(strict_types = 1);
 namespace Centrex\Payroll\Http\Livewire;
 
 use Centrex\Payroll\Facades\Payroll;
+use Centrex\Payroll\Jobs\PostSalaryPaymentToAccountingJob;
 use Centrex\Payroll\Models\{Employee, PayrollEntry};
-use Centrex\Payroll\Support\AccountingSync;
 use Illuminate\Contracts\View\View;
-use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
 class EmployeeSalaryLedgerPage extends Component
@@ -71,23 +70,24 @@ class EmployeeSalaryLedgerPage extends Component
         $entry = PayrollEntry::findOrFail($this->payEntryId);
 
         try {
-            DB::transaction(function () use ($entry): void {
-                $payment = Payroll::recordSalaryPayment($entry, (int) $this->employeeId, [
-                    'amount'    => $this->payAmount,
-                    'method'    => $this->payMethod,
-                    'paid_at'   => $this->payDate,
-                    'reference' => $this->payReference ?: null,
-                    'notes'     => $this->payNotes ?: null,
-                ]);
-
-                app(AccountingSync::class)->postSalaryPayment($payment);
-            });
-
-            $this->dispatch('notify', type: 'success', message: 'Salary payment recorded.');
-            $this->showPayModal = false;
+            $payment = Payroll::recordSalaryPayment($entry, (int) $this->employeeId, [
+                'amount'    => $this->payAmount,
+                'method'    => $this->payMethod,
+                'paid_at'   => $this->payDate,
+                'reference' => $this->payReference ?: null,
+                'notes'     => $this->payNotes ?: null,
+            ]);
         } catch (\RuntimeException $e) {
             $this->dispatch('notify', type: 'error', message: $e->getMessage());
+
+            return;
         }
+
+        // Queued — see PostPayrollEntryToAccountingJob's docblock (same pattern).
+        PostSalaryPaymentToAccountingJob::dispatch($payment->id)->afterCommit();
+
+        $this->dispatch('notify', type: 'success', message: 'Salary payment recorded.');
+        $this->showPayModal = false;
     }
 
     public function render(): View

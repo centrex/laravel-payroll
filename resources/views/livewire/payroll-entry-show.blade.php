@@ -43,8 +43,13 @@
         </div>
     @elseif ($entry->status === 'draft')
         <p class="text-sm text-base-content/60">Not posted yet — approving this entry will post it to accounting (if accounting sync is enabled).</p>
+    @elseif ($entry->accounting_sync_error)
+        <x-tallui-alert type="error" title="Accounting sync failed">
+            {{ $entry->accounting_sync_error }}
+        </x-tallui-alert>
+        <x-tallui-button wire:click="retryAccountingSync" spinner="retryAccountingSync" icon="o-arrow-path" class="btn-warning btn-sm mt-3">Retry Sync</x-tallui-button>
     @else
-        <p class="text-sm text-base-content/60">No journal entry linked. Accounting sync may be disabled, or this entry was approved before sync was turned on.</p>
+        <p class="text-sm text-base-content/60">No journal entry linked. Accounting sync may be disabled, syncing may still be in progress, or this entry was approved before sync was turned on.</p>
     @endif
 </x-tallui-card>
 

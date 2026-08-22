@@ -87,6 +87,11 @@
                                 };
                             @endphp
                             <x-tallui-badge :type="$badgeType">{{ $loan->status->label() }}</x-tallui-badge>
+                            @if($loan->accounting_sync_error)
+                                <x-tallui-tooltip :text="$loan->accounting_sync_error" position="top" color="error">
+                                    <x-tallui-badge type="error" size="sm">Sync failed</x-tallui-badge>
+                                </x-tallui-tooltip>
+                            @endif
                         </td>
                         <td class="pr-5">
                             <div class="flex justify-end gap-1">
@@ -97,6 +102,9 @@
                                     <x-tallui-button wire:click="openRepay({{ $loan->id }})" icon="o-currency-dollar" class="btn-primary btn-xs">Repay</x-tallui-button>
                                     <x-tallui-button wire:click="cancel({{ $loan->id }})" class="btn-error btn-xs btn-outline">Cancel</x-tallui-button>
                                 @endif
+                                @if($loan->accounting_sync_error)
+                                    <x-tallui-button wire:click="retryLoanAccountingSync({{ $loan->id }})" spinner="retryLoanAccountingSync({{ $loan->id }})" icon="o-arrow-path" class="btn-warning btn-xs">Retry Sync</x-tallui-button>
+                                @endif
                             </div>
                         </td>
                     </tr>
@@ -106,11 +114,17 @@
                                 <div class="text-xs text-base-content/50 uppercase font-semibold mb-1">Repayment History ({{ $loan->repayments->count() }})</div>
                                 <div class="flex flex-wrap gap-2">
                                     @foreach($loan->repayments->sortByDesc('repaid_at') as $repayment)
-                                        <div class="badge badge-ghost gap-1 text-xs">
+                                        <div class="badge gap-1 text-xs {{ $repayment->accounting_sync_error ? 'badge-error badge-outline' : 'badge-ghost' }}">
                                             {{ $repayment->repaid_at->format('M d, Y') }}
                                             &mdash;
                                             <span class="font-mono font-semibold">{{ number_format($repayment->amount, 2) }}</span>
                                             ({{ $repayment->method->label() }})
+                                            @if($repayment->accounting_sync_error)
+                                                <x-tallui-tooltip :text="$repayment->accounting_sync_error" position="top" color="error">
+                                                    <x-tallui-icon name="o-exclamation-triangle" size="w-3 h-3" />
+                                                </x-tallui-tooltip>
+                                                <button type="button" wire:click="retryRepaymentAccountingSync({{ $repayment->id }})" class="underline">retry</button>
+                                            @endif
                                         </div>
                                     @endforeach
                                 </div>
